@@ -7,6 +7,6 @@ MESSAGE_FILE_PATH = os.path.join(DATA_FOLDER, "message.txt")
 SYMBOLS_FILE_PATH = os.path.join(DATA_FOLDER, "symbols.txt")
 TRAINING_TEXT_FILE_PATH = os.path.join(DATA_FOLDER, "war_and_peace.txt")
 
-OUTPUTS_FOLDER = "outputs/python"
+OUTPUTS_FOLDER = "outputs"
 
 DEFAULT_SEED = 0

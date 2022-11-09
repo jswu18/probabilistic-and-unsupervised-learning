@@ -4,6 +4,7 @@ from typing import List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import logsumexp
+from sklearn.manifold import TSNE
 
 from src.constants import DEFAULT_SEED
 
@@ -125,21 +126,7 @@ def _compute_log_pi_hat(log_responsibility: np.ndarray) -> np.ndarray:
     :return: an array of the maximised log mixing proportions (1, k)
     """
     n, _ = log_responsibility.shape
-    summed_responsibilities = logsumexp(log_responsibility, axis=0)
-
-    alpha = 2
-    beta = 2
-    summed_responsibilities = logsumexp(
-        np.stack(
-            (
-                (alpha - 1) * np.ones(summed_responsibilities.shape),
-                summed_responsibilities,
-            ),
-            axis=0,
-        ),
-        axis=0,
-    )
-    return (summed_responsibilities - np.log(n + alpha + beta - 2)).reshape(1, -1)
+    return (logsumexp(log_responsibility, axis=0) - np.log(n)).reshape(1, -1)
 
 
 def _compute_log_p_matrix_hat(
@@ -159,37 +146,37 @@ def _compute_log_p_matrix_hat(
         log_responsibility[:, np.newaxis, :], d, axis=1
     )  # (n, d, k)
 
-    log_p_matrix_unnormalised = logsumexp(
+    log_p_matrix_unnormalised_likelihood = logsumexp(
         log_responsibility_repeated, b=x_repeated, axis=0
     )  # (d, k)
-    log_p_matrix_normaliser = np.array(
+    log_p_matrix_normaliser_likelihood = np.array(
         logsumexp(log_responsibility_repeated, axis=0)
     )  # (d, k)
 
     alpha = 2
     beta = 2
-    log_p_matrix_unnormalised = logsumexp(
+    log_p_matrix_unnormalised_posterior = logsumexp(
         np.stack(
             (
-                (alpha - 1) * np.ones(log_p_matrix_unnormalised.shape),
-                log_p_matrix_unnormalised,
+                (alpha - 1) * np.ones(log_p_matrix_unnormalised_likelihood.shape),
+                log_p_matrix_unnormalised_likelihood,
             ),
             axis=0,
         ),
         axis=0,
     )
-    log_p_matrix_normaliser = logsumexp(
+    log_p_matrix_normaliser_posterior = logsumexp(
         np.stack(
             (
-                (alpha + beta - 2) * np.ones(log_p_matrix_normaliser.shape),
-                log_p_matrix_normaliser,
+                (alpha + beta - 2) * np.ones(log_p_matrix_normaliser_likelihood.shape),
+                log_p_matrix_normaliser_likelihood,
             ),
             axis=0,
         ),
         axis=0,
     )
-    log_p_matrix_normalised = log_p_matrix_unnormalised - log_p_matrix_normaliser
-    return log_p_matrix_normalised
+    log_p_matrix_normalised_posterior = log_p_matrix_unnormalised_posterior - log_p_matrix_normaliser_posterior
+    return log_p_matrix_normalised_posterior
 
 
 def _compute_log_m_step(x: np.ndarray, log_responsibility: np.ndarray) -> Theta:
@@ -207,19 +194,21 @@ def _compute_log_m_step(x: np.ndarray, log_responsibility: np.ndarray) -> Theta:
 
 def _run_expectation_maximisation(
     x: np.ndarray, theta: Theta, max_number_of_steps: int, epsilon: float
-) -> Tuple[Theta, List[float]]:
+) -> Tuple[Theta, np.ndarray, List[float]]:
     """
     Run the expectation maximisation algorithm
     :param x: the image data (n, d)
     :param theta: initial theta parameters
     :param max_number_of_steps: the maximum number of steps to run the algorithm
     :param epsilon: the minimum required change in log likelihood, otherwise the algorithm stops early
-    :return: a tuple containing the optimised thetas and the log likelihood at each step of the algorithm
+    :return: a tuple containing the optimised thetas, the log responsibilities,
+             and the log likelihood at each step of the algorithm
     """
+    log_responsibility = None
     log_likelihoods = []
     for _ in range(max_number_of_steps):
-        log_r = _compute_log_e_step(x, theta)
-        theta = _compute_log_m_step(x, log_r)
+        log_responsibility = _compute_log_e_step(x, theta)
+        theta = _compute_log_m_step(x, log_responsibility)
 
         log_likelihoods.append(_compute_log_likelihood(x, theta))
 
@@ -227,7 +216,7 @@ def _run_expectation_maximisation(
         if len(log_likelihoods) > 1:
             if (log_likelihoods[-1] - log_likelihoods[-2]) < epsilon:
                 break
-    return theta, log_likelihoods
+    return theta, log_responsibility, log_likelihoods
 
 
 def _plot_p_matrix(
@@ -236,6 +225,8 @@ def _plot_p_matrix(
     n = len(ks)
     m = np.max(ks)
     fig = plt.figure()
+    fig.set_figwidth(15)
+    fig.set_figheight(10)
     for i, k in enumerate(ks):
         for j in range(k):
             ax = plt.subplot(n, m, m * i + j + 1)
@@ -257,26 +248,45 @@ def _plot_p_matrix(
             )
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
+            ax.set_title(f"pi_{j}: {np.round(thetas[i].pi[0, j], 2)}")
             if j == 0:
                 ax.set_ylabel(f"{k=}")
     fig.suptitle(figure_title)
     plt.savefig(figure_path)
 
 
-def _plot_log_likelihoods(
-    log_likelihoods: List[List[float]],
+def _plot_tsne_responsibility_clusters(
+    log_responsibilities: List[np.ndarray], ks: List[int], figure_title: str, figure_path: str
+):
+    n = len(ks)
+    fig = plt.figure()
+    fig.set_figwidth(5*n)
+    fig.set_figheight(5)
+    for i, k in enumerate(ks):
+        embedding = TSNE(n_components=2, learning_rate='auto', init='random', perplexity=10).fit_transform(
+            log_responsibilities[i])
+        ax = plt.subplot(1, n, i+1)
+        ax.scatter(embedding[:, 0], embedding[:, 1])
+        ax.set_title(f"{k=}")
+    fig.suptitle(figure_title)
+    plt.savefig(figure_path,bbox_inches='tight')
+
+
+def _plot_log_posteriors(
+    log_posteriors: List[List[float]],
     ks: List[int],
+    epsilon: float,
     figure_title: str,
     figure_path: str,
 ) -> None:
     fig, ax = plt.subplots(len(ks), 1, constrained_layout=True)
     fig.set_figwidth(10)
-    fig.set_figheight(15)
+    fig.set_figheight(10)
     for i, k in enumerate(ks):
-        ax[i].plot(np.arange(1, len(log_likelihoods[i]) + 1), log_likelihoods[i])
+        ax[i].plot(np.arange(1, len(log_posteriors[i]) + 1), log_posteriors[i])
         ax[i].set_xlabel("Step")
-        ax[i].set_ylabel("Log-Likelihood")
-        ax[i].set_title(f"{k=}")
+        ax[i].set_ylabel(f"Log-Posterior")
+        ax[i].set_title(f"{k=} {epsilon=}")
     plt.suptitle(figure_title)
 
     plt.savefig(figure_path)
@@ -298,10 +308,11 @@ def e(
     for i in range(number_of_trials):
         init_thetas = []
         em_thetas = []
-        log_likelihoods = []
+        log_posteriors = []
+        log_responsibilities = []
         for j, k in enumerate(ks):
             init_theta = _init_params(k, d, seed=seeds[i, j])
-            em_theta, log_likelihood = _run_expectation_maximisation(
+            em_theta, log_responsibility, log_posterior = _run_expectation_maximisation(
                 x,
                 theta=init_theta,
                 epsilon=epsilon,
@@ -309,7 +320,8 @@ def e(
             )
             init_thetas.append(init_theta)
             em_thetas.append(em_theta)
-            log_likelihoods.append(log_likelihood)
+            log_responsibilities.append(log_responsibility)
+            log_posteriors.append(log_posterior)
 
         _plot_p_matrix(
             init_thetas,
@@ -323,9 +335,16 @@ def e(
             figure_title=f"{figure_title} Trial {i}: EM Optimised P",
             figure_path=f"{figure_path}-{i}-optimised-p.png",
         )
-        _plot_log_likelihoods(
-            log_likelihoods,
+        _plot_tsne_responsibility_clusters(
+            log_responsibilities,
             ks,
-            figure_title=f"{figure_title} Trial {i}: Negative Log-Likelihood",
-            figure_path=f"{figure_path}-{i}-log-like.png",
+            figure_title=f"{figure_title} Trial {i}: TSNE Responsibility Visualisation",
+            figure_path=f"{figure_path}-{i}-tsne.png",
+        )
+        _plot_log_posteriors(
+            log_posteriors,
+            ks,
+            epsilon,
+            figure_title=f"{figure_title} Trial {i}: Log-Posterior",
+            figure_path=f"{figure_path}-{i}-log-pos.png",
         )

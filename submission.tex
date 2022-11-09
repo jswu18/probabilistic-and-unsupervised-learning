@@ -128,7 +128,7 @@ $$\frac{\partial\mathcal{L}(\mathcal{D}|\textbf{p})}{\partial p_d} = \frac{\sum_
 
 For the second term $\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d}$, we start with $P(\textbf{p}))$:
 
-$$P(\textbf{p})) = \prod_{d=1}^D P(p_d)$$
+$$P(\textbf{p}) = \prod_{d=1}^D P(p_d)$$
 
 Assuming independent Beta priors on the parameters $p_d$:
 
@@ -140,13 +140,10 @@ $$\mathcal{L}(\textbf{p}) = \sum_{d=1}^{D} -\log (B(\alpha, \beta)) + (\alpha-1)
 
 Taking the derivative with respect to $p_d$:
 
-$$\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d} = -\log (B(\alpha, \beta)) + (\alpha-1)\log p_d + (\beta-1)\log(1-p_d))$$
+$$\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d} = \frac{(\alpha-1)}{p_d} -  \frac{(\beta-1)}{1-p_d}$$
 
 Since we are only concerned with $p_d$, we are only left with a single element of the summation pertaining to $p_d$.
 
-Simplifying:
-
-$$\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d} = \frac{(\alpha-1)}{p_d} -  \frac{(\beta-1)}{1-p_d}$$
 
 Combining to have an expression for the log posterior derivative $\frac{\partial\mathcal{L}(\textbf{p}|\mathcal{D})}{\partial p_d}$:
 
@@ -171,11 +168,6 @@ To show that this is a maximum, the second derivative is:
 $$\frac{\partial^2\mathcal{L}(\textbf{p}|\mathcal{D})}{(\partial p_d)^2} = \frac{(1-\alpha) - \sum_{n=1}^{N} x_d^{(n)}}{(p_d)^2} +  \frac{(1-\beta) - \sum_{n=1}^{N} (1-x_d^{(n)})}{(1-p_d)^2}$$.
 
 For a maximum, we need $\frac{\partial^2\mathcal{L}(\textbf{p}|\mathcal{D})}{(\partial p_d)^2} < 0$ meaning that we need at least one of the strict inequalities $\alpha < 1- \sum_{n=1}^{N} x_d^{(n)}$ or $\beta < 1-\sum_{n=1}^{N} (1-x_d^{(n)})$ to be satisified, where the other can be $\leq$. The Beta distribution requires $\alpha > 0$ and $\beta > 0$ so this requirement will always be satisfied (in the worst case of a single image, either $x_d^{(1)}=1$ or $1-x_d^{(1)}=1$).
-
-
-
-
-
 
 Due to independence of our likelihood and priors for each dimension, we can express the maximum a priori for \textbf{p} in matrix form as \hat \textbf{p}:
 
@@ -204,39 +196,48 @@ Displaying the learned parameters:
 \centering
 \begin{minipage}{0.5\textwidth}
   \centering
-  \includegraphics[scale=0.5]{outputs/q1/q1d}
+  \includegraphics[scale=0.4]{outputs/q1/q1d}
   \caption{ML parameters}
   \label{fig:1d}
 \end{minipage}%
 \begin{minipage}{0.5\textwidth}
   \centering
-  \includegraphics[scale=0.5]{outputs/q1/q1e}
+  \includegraphics[scale=0.4]{outputs/q1/q1e}
   \caption{MAP parameters}
   \label{fig:1e}
 \end{minipage}
 \end{figure}
 
 Comparing the equations:
-
     $$\hat{\textbf{p}}^{MLE} = \frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$$
-
     and
-
     $$\hat{\textbf{p}}^{MAP}  =  \frac{\alpha - 1 +\sum_{n=1}^{N} \textbf{x}^n}{(N+\alpha+\beta-2)}$$
 
+As the number of data points increases, the MAP estimate approaches $\frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$, the MLE. This makes sense because as our data set gets bigger, we are less reliant on our prior.
+Moreover, if a specific pixel in all of the images of our data set are white or all black, the MLE for that pixel will be binary.
+This may not be representative of our intuitions about image pixels, as there should be some non-zero probability of a pixel being black or white.
+By introducing an appropriate prior we can ensure that the probability of that pixel will never be exactly zero or one.
+In our case, with a Beta(3,3) prior on each pixel, our parameter values are biased to be closer to 0.5 and to never be at the extremities 0 and 1.
+We can see this in Figure $\ref{fig:1e}$ where the range of our parameters is smaller than the range of Figure $\ref{fig:1d}$.
+Figure $\ref{fig:1e-comparison}$ visualises $\hat{\textbf{p}}^{MAP}-\hat{\textbf{p}}^{MLE}$ and we can see that for likelihoods greater than 0.5 in the MLE, the MAP has a lower value and for likelihoods less than 0.5, the MAP has a higher value, confirming our intuitions.
 
-We see that when the number of data points increases, the MAP estimate approaches $\frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$, the MLE. This result makes sense because as our data set gets bigger, are less reliant on our prior.  Moreover, if in our data set of images, a specific pixel in all of these images are white or all black, the MLE for that pixel will be binary. This may not be be representative of our intuitions about images, where there should be some non-zero probability of a pixel being black or white. Thus, introducing an appropriate prior will ensure that the probability of that pixel will never be zero or one. Moreover, a prior can also help ensure numerical stability during calculations. The logarithm of zero is negative infinity, so having probability zero can be problematic for log-likelihoods calculations. A prior can ensure non-zero probabilities. In our case, by using a small Beta distribution prior on each pixel, our parameter values are biased be close to 0.5 and to never be at the extremities 0 and 1. We can see this in our MAP parameters figure where the range of our parameters is smaller than the range for the ML parameters. Also, the MLE has values of zero whereas the MAP does not. Interestingly, when $\alpha=1$ and $\beta=1$, $\hat{\textbf{p}}^{MLE} = \hat{\textbf{p}}^{MAP}$, intuitively this is when the prior is a uniform distribution and so there aren't any biases on the location of $\textbf{p}$ and we recover the MLE. On the other hand, a misspecified prior can be problematic, as the estimated parameters might be skewed by the prior and not properly represent the underlying data generating process and this can be worse than using the MLE.
-%In this example, we're using images of different digits as part of our data set. If a particular digit occurs more frequently in the data set, we will see that digit when visualising the MLE or MAP (the digit zero in this case), they simply provides the "average" image pixels. With a set of images with more equal representation of each digit, the parameter visualisation could be an image overlaying the different digits, which is not representative of the "most likely" image in the data. In this case where our data is likely clustered, using a multimodal likelihood is probably a better idea than the unimodal likelihood we've used.
-
-    We can also visualise $\hat{\textbf{p}}^{MAP}-\hat{\textbf{p}}^{MLE}$ to see that for likelihoods greater than 0.5 in the MLE, the MAP has a lower value and for likelihoods less than 0.5, the MAP has a higher value, confirming our intutions.
-
-  \end{figure}
   \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.5]{outputs/q1/q1e-mle-vs-map}
+  \includegraphics[scale=0.4]{outputs/q1/q1e-mle-vs-map}
   \caption{$\hat{\textbf{p}}^{MAP}-\hat{\textbf{p}}^{MLE}$}
-  \label{fig:1e}
+  \label{fig:1e-comparison}
   \end{figure}
+
+Priors can also help ensure numerical stability during calculations.
+The logarithm of zero is negative infinity, so having if the MLE is zero it can be problematic for log-likelihoods calculations whereas MAP can ensure non-zero probabilities.
+We can see in Figure $\ref{fig:1d}$ and Figure $\ref{fig:1e}$ that the MLE has parameter values of zero whereas the MAP does not.
+Interestingly, when $\alpha=1$ and $\beta=1$, $\hat{\textbf{p}}^{MLE} = \hat{\textbf{p}}^{MAP}$.
+Intuitively this is when the prior is a uniform distribution and so there aren't any biases on the location of $\textbf{p}$ and we recover the MLE.
+
+On the other hand, a mis-specified prior can be problematic, as the estimated parameters might be skewed by the prior and not properly represent the underlying data generating process, this can result in parameter estimates that are worse than using the MLE.
+%In this example, we're using images of different digits as part of our data set. If a particular digit occurs more frequently in the data set, we will see that digit when visualising the MLE or MAP (the digit zero in this case), they simply provides the "average" image pixels. With a set of images with more equal representation of each digit, the parameter visualisation could be an image overlaying the different digits, which is not representative of the "most likely" image in the data. In this case where our data is likely clustered, using a multimodal likelihood is probably a better idea than the unimodal likelihood we've used.
+
+
 
 %With MAP, if we have priors skewed towards the parameters for under represented digits in our data, it is more likely to "even out" the estimated parameters. In our case, we used the same Beta prior on all pixels, essentially placing a "uniform shading" on the entire image, so we could not
 
@@ -246,7 +247,6 @@ We see that when the number of data points increases, the MAP estimate approache
 \end{enumerate}
 
 \newpage
-
 \section*{Question 2}
 
 
@@ -254,20 +254,20 @@ We see that when the number of data points increases, the MAP estimate approache
 
 \item[(a)] When all D components are generated from a Bernoulli distribution with $p_d = 0.5$, we have the likelihood function for model $M_1$:
 
-$$P(\textbf{x}^{(n)|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T) = \prod_{d=1}^{D} (0.5)^{x_d^{(n)}} (0.5)^{1-x_d^{(n)}}$$
+$$P(\textbf{x}^{(n)|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T, M_1) = \prod_{d=1}^{D} (0.5)^{x_d^{(n)}} (0.5)^{1-x_d^{(n)}}$$
 
 \item[(b)] When all D components are generated from Bernoulli distributions with unknown, but identical, $p_d$, we have the likelihood function for model $M_2$:
 
-$$P(\textbf{x}^{(n)}|\textbf{p}^{(2)}}=[p_d, p_d, ..., p_d]^T) = \prod_{d'=1}^{D} p_d^{x_{d'}^{(n)}} (1-p_d)^{1-x_{d'}^{(n)}}$$
+$$P(\textbf{x}^{(n)}|\textbf{p}^{(2)}}=[p_d, p_d, ..., p_d]^T, M_2) = \prod_{d'=1}^{D} p_d^{x_{d'}^{(n)}} (1-p_d)^{1-x_{d'}^{(n)}}$$
 
 
 \item[(c)] When each component is Bernoulli distributed with separate, unknown $p_d$, we have the likelihood function for model $M_3$:
 
-$$P(\textbf{x}^{(n)}|\textbf{p}^{(3)}}=[p_1, p_2, ..., p_D]^T) = \prod_{d=1}^{D} p_d^{x_d^{(n)}} (1-p_d)^{1-x_d^{(n)}}$$
+$$P(\textbf{x}^{(n)}|\textbf{p}^{(3)}}=[p_1, p_2, ..., p_D]^T, M_3) = \prod_{d=1}^{D} p_d^{x_d^{(n)}} (1-p_d)^{1-x_d^{(n)}}$$
 
 
 
-For each model $M_i$, we can marginalise out $P$ to get $P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)$:
+For each model $M_i$, we can marginalise out $\textbf{p}^{(i)}}$ to get $P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)$:
 
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|p_d, M_i)P(p_d|M_i) dp_1...dp_D$$
 
@@ -326,7 +326,7 @@ The posterior probability of a model $M_i$ can be expressed:
 
 $$P(M_i |  \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}{P( \{\textbf{x}^{(n)}\}_{n=1}^{N})}$$
 
-We only ave three models, so in this case the normalisation $P(D)$ can be expressed as a sum:
+We only have three models, so in this case the normalisation $P(\{\textbf{x}^{(n)}\}_{n=1}^{N})$ can be expressed as a sum:
 
 $$P(M_i| \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}{\sum_{i\in \{1,2,3\}} P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}$$
 
@@ -339,13 +339,13 @@ Calculating the posterior probabilities of each of the three models having gener
 
 \begin{center}
 \begin{tabular}{l|c}%
- \bfseries $i$ & \bfseries$ P(M_i|\mathcal{D})$% specify table head
+ \bfseries $i$ & \bfseries$ P(M_i|\{\textbf{x}^{(n)}\}_{n=1}^{N})$% specify table head
 \csvreader[head to column names]{outputs/q2/q2c.csv}{}% use head of csv as column names
 {\\\hline\csvcoli&\csvcolii}% specify your coloumns here
 \end{tabular}
 \end{center}
 
-% TODO
+We can see that for models specified to have the same parameter value for all pixels is very unlikely under the given data set. This makes sense because it is specifying models where the image is essentially blank, which is not reflective of the data. Moreover, $M_1$ specifies a specific value of 0.5 for all the parameters whereas $M_2$ specifies any value for all the parameters as long as it's the same. So the model $M_1$ is a subset of the models specified in $M_2$ and we can see this reflected in our probabilities when $P(M_2|\{\textbf{x}^{(n)}\}_{n=1}^{N}) > P(M_1|\{\textbf{x}^{(n)}\}_{n=1}^{N})$.
 
 \newpage
 The Python code for calculating the posterior probabilities of the three models:
@@ -365,125 +365,258 @@ The Python code for calculating the posterior probabilities of the three models:
 %model, introducing a discrete hidden variable $s(n) \in \{1, . . . , K \}$ where $P (s(n) = k|\pi) = \pi_k$.
 
 \item[(a)] The likelihood for a model consisting of a mixture of K multivariate Bernoulli distributions can be expressed as the product across $N$ data points:
-
 $$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \prod_{i=1}^{N}P(x_i|\theta)$$
-
-where $\{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set with $\textbf{x}^{(n)} \in \mathbb{R}^{D \times 1}$ and $\theta = \{\pi, \mathbf{P}\}$, $\pi = [\pi_1, . . . , \pi_K] \in \mathbb{R}^{K \times 1}$$ our mixing proportions $(0 \leq \pi_k \leq 1; \sum_k \pi_k = 1)$ and $\mathbf{P} \in \mathbb{R}^{D \times K}$ the K Bernoulli parameter vectors with elements $p_{kd}$ denoting the probability that pixel d takes value 1 under mixture component k. We are also the images are iid under the model, and that the pixels are independent of each other within each component distribution.
+where $\{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set with $\textbf{x}^{(n)} \in \mathbb{R}^{D \times 1}$ and $\theta = \{\pi, \mathbf{P}\}$, $\pi = [\pi_1, . . . , \pi_K] \in \mathbb{R}^{K \times 1}$ our mixing proportions $(0 \leq \pi_k \leq 1; \sum_k \pi_k = 1)$ and $\mathbf{P} \in \mathbb{R}^{D \times K}$ the K Bernoulli parameter vectors with elements $p_{kd}$ denoting the probability that pixel d takes value 1 under mixture component k. We are also the images are iid under the model, and that the pixels are independent of each other within each component distribution.
 
 For each $P(\textbf{x}^{(n)}|\theta)$:
-
 $$P(\textbf{x}^{(n)}|\theta) = \sum_{k=1}^{K} \pi_k \prod_{d=1}^D (p_{kd})^{\textbf{x}^{(n)}_{d}} (1-p_{kd})^{1-\textbf{x}^{(n)}_{d}}$$
-
 The log-likelihood $\mathcal{L}(\textbf{x}^{(n)}|\theta)$ can be expressed in matrix form:
-
 $$\mathcal{L}(\textbf{x}^{(n)}|\theta) = \log \sum_{k=1}^{K}  \pi_k \exp\bigg(\textbf{x}^{(n)}\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})\log(1-\mathbf{P}_{k})\bigg) $$
-
 which can be further vectorised using Python scipy's $logsumexp$ operation.
 
 Moreover, the log-likelihood $\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)$ can be expressed:
-
 $$\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \sum_{i=1}^{N} \Bigg( \log \sum_{k=1}^{K}  \pi_k \exp\bigg(\textbf{x}^{(n)}\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})\log(1-\mathbf{P}_{k})\bigg) \Bigg)$$
 
 \item[(b)] The expression for the responsibility of mixture component k for data vector
 $x^{(n)}$, i.e. $r_{nk} \equiv P (s^{(n)} = k|x^{(n)}, \pi, \mathbf{P})$. This computation provides the E-step for an EM algorithm.
 
 We know that:
-
 $$P(A|B) \propto P(B|A)P(A)$$
-
 Thus,
-
-
 $$P(s^{(n)} = k|x^{(n)}, \pi, \mathbf{P}) \propto  P(x^{(n)} | s^{(n)} = k, \pi, \mathbf{P}) P(s^{(n)} = k|\pi, \mathbf{P})$$
-
 where $s^{(n)} \in \{1,...,K\}$ a discrete latent variable where $P(s^{(n)} = k|x^{(n)} | \pi) = \pi_k$. Note that $P(s^{(n)} = k|x^{(n)} | \pi) = P(s^{(n)} = k|x^{(n)} | \pi, \mathbf{P})$ as $s^{(n)$ isn't dependent on $\mathbf{P}$.
 
 Let $P(s^{(n)} = k|x^{(n)}, \pi, \mathbf{P}) \propto P(s^{(n)}$ be the unnormalised responsibility $\tilde{r}_{nk}$. Using the mixture for component $k$ and the likelihood function of component $k$:
-
 $$\tilde{r}_{nk} = \pi_k \prod_{d=1}^D (p_{kd})^{x^{(n)}_{d}} (1-p_{kd})^{1-x^{(n)}_{d}}$$
-
 Normalising across the components:
-
 $$r_{nk} = \frac{\tilde{r}_{nk}}{\sum_{j=1}^K\tilde{r}_{nj}}$$
-
 and $r_{nk}$, we have calculated $P(s^{(n)} = k|x^{(n)}, \pi, \mathbf{P})$ for the E step.
 
 Moreover,
-
 $$ \log \tilde{r}_{nk} = \log \pi_k + \sum_{d=1}^D \bigg( x^{(n)}_{d}\log(p_{kd}) + (1-x^{(n)}_{d}) \log(1-\exp(\log(p_{kd}))) \bigg)$$
-
 and
-
 $$\log r_{nk} = \log\tilde{r}_{nk} - \log\sum_{j=1}^K\exp(\log\tilde{r}_{nj})$$
-
-which can be vectorised using Python scipy's $logsumexp$ operation.
-
-
+which can be vectorised as $\log \textbf{r}_{n}$ using Python scipy's $logsumexp$ operation.
 
 \item[(c)] We know that the expectation log joint can be expressed:
-
 $$\Bigg\langle \sum_n \log P(x^{(n)}, s^{(n)}| \pi, \mathbf{P})\Bigg\rangle_{q(\{s^{(n)}\})} = \sum_{n=1}^N q(s^{(n)}) \log P(x^{(n)}, s^{(n)}| \pi, \mathbf{P})$$
+Let this quantity be $E$. Each term of $E$ can be expressed:
+$$q(s^{(n)}) = \textbf{r}_{n}$$
+and
+$$\log P(x^{(n)}, s^{(n)}| \pi, \mathbf{P}) = \log[P(x^{(n)}| s^{(n)}, \pi, \mathbf{P})P(s^{(n)}| \pi, \mathbf{P})]$$
+which is the vectorised version of $\log\tilde{r}_{nk}$ from part (b) so:
+$$\log P(x^{(n)}, s^{(n)}| \pi, \mathbf{P}) =\log(\pi)+\log(\mathbf{P})^T x^{(n)} + \log(1-\mathbf{P})^T(1-x^{(n)})$$
+Combining:
+$$ E = \sum_n \textbf{r}_{n}^T[\log(\pi)+\log(\mathbf{P})^T x^{(n)} + \log(1-\mathbf{P})^T(1-x^{(n)})]$$
 
-Let this quantity be $E$.
-
-Filling in the appropriate quantities:
-
-$$ E = \sum_n r_n^T[\log(\pi)+\log(\mathbf{P})^T x^{(n)} + \log(1-\mathbf{P})^T(1-x^{(n)})]$$
-
-where $q(s^{(n)}) = r_n^T$ and $\log P(x^{(n)}, s^{(n)}) = \log(\pi)+\log(\mathbf{P})^T x^{(n)} + \log(1-\mathbf{P})^T(1-x^{(n)})$. Noting that $P(x^{(n)}, s^{(n)}| \pi, \mathbf{P}) = P(x^{(n)}|s^{(n)}) \pi, \mathbf{P}) P(s^{(n)})| \pi, \mathbf{P}) = \tilde{r}_{n}$
-
-To maximise with respect to $\pi$ and $P$ for the M step, we want to take the derivative, set to zero, and solve for $\hat\pi$ and $\hat P$.
+To maximise with respect to $\pi$ and $\mathbf{P}$ for the M step, we want to take the derivative, set to zero, and solve for $\hat\pi$ and $\hat P$.
 
 For the $k^{th}$ element of $\pi$:
+$$\frac{\partial E}{\partial \pi_k} = \sum_n r_{nk} \frac{1}{\pi_k}$$
 
-$$\frac{\partial E}{\partial \pi_k} = \sum_n r_{nk} \frac{1}{\pi_m}$$
+The second derivative:
 
-and
+$$\frac{\partial E}{(\partial \pi_k)^2} = \sum_n r_{nk} \frac{-1}{(\pi_k)^2}$$
 
+is always negative because $r_{nk}\geq 0$, $\sum_{n}r_{nk}=1$, \pi_{k}\geq 0$, and $\sum_{n}\pi_{k}=1$, ensuring a maximum in the next step.
+
+We can calculate the maximiser:
 $$\frac{\partial E}{\partial \pi_k} + \lambda = 0$$
-
 where $\lambda$ is a Lagrange multiplier ensuring that the mixing proportions sum to unity.
 
 Thus,
+$$\hat \pi_k = \frac{\sum_{n}r_{nk}}{N}$$
 
-$$\hat \pi_m = \frac{1}{N}\sum_{n}r_{nk}$$
+For the $dk^{th}$ element of $\mathbf{P}$:
 
-For the $dk^{th}$ element of P:
+$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}\frac{\partial}{\partial \mathbf{P}_{dk}}[x^{(n)}_{d}\log \mathbf{P}_{dk}+(1-x^{(n)}_{d}) \log(1-\mathbf{P}_{dk})]$$
 
-$$\frac{\partial E}{\partial P_{dk}} = \sum_n r_{nk}\frac{\partial}{\partial P_{dk}}[x^{(n)}_{d}\log P_{dk}+(1-x^{(n)}_{d}) \log(1-P_{dk})]$$
+Simplifying:
 
-Simplying:
+$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}(\frac{x^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-x^{(n)}_{d}}{1-\mathbf{P}_{dk}})$$
 
-$$\frac{\partial E}{\partial P_{dk}} = \sum_n r_{nk}(\frac{x^{(n)}_{d}}{ P_{dk}}-\frac{1-x^{(n)}_{d}}{1-P_{dk}})$$
+Similar to Question 1, we can see that taking the derivative, the term in the brackets will always be less than zero and with $r_{nk}\geq 0$ and $\sum_{n}r_{nk}=1$, the second derivative will always be negative. This ensures that we have a maximum in the next step.
 
 Setting the derivative to zero:
 
-$$\frac{\sum_n  x^{(n)}_{d}r_{nk}}{ P_{dk}}-\frac{\sum_n r_{nk}-\sum_n  x^{(n)}_{d}r_{nk}}{1-P_{dk}} = 0$$
+$$\frac{\sum_n  x^{(n)}_{d}r_{nk}}{ \mathbf{P}_{dk}}-\frac{\sum_n r_{nk}-\sum_n  x^{(n)}_{d}r_{nk}}{1-\mathbf{P}_{dk}} = 0$$
 
-Solving for $P_{dk}$:
+Solving for $\hat{\mathbf{P}}_{dk}$:
 
-$$P_{dk}\sum_n r_{nk}-P_{dk}\sum_n x^{(n)}_{d}r_{nk} = \sum_n  x^{(n)}_{d}r_{nk}-P_{dk}\sum_n  x^{(n)}_{d}r_{nk}$$
+$$\hat{\mathbf{P}}_{dk}\sum_n r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n x^{(n)}_{d}r_{nk} = \sum_n  x^{(n)}_{d}r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n  x^{(n)}_{d}r_{nk}$$
 
 Thus,
 
-$$\hat{P}_{dk} = \frac{\sum_n x^{(n)}_{d}r_{nk}}{\sum_n r_{nk}}$$
+$$\hat{\mathbf{P}}_{dk} = \frac{\sum_n x^{(n)}_{d}r_{nk}}{\sum_n r_{nk}}$$
 
 We have the maximizing parameters for the expected log-joint
 
-$$\arg \max_{\pi, P} \Bigg\langle \sum_n \log P(x^{(n)}, s^{(n)}| \pi, P)\Bigg\rangle_{q(\{s^{(n)}\})}$$
+$$\arg \max_{\pi, \mathbf{P}} \Bigg\langle \sum_n \log P(x^{(n)}, s^{(n)}| \pi, \mathbf{P})\Bigg\rangle_{q(\{s^{(n)}\})}$$
 
-thus obtaining an iterative update for the parameters $\pi$ and $P$ in the M-step of EM.
+thus obtaining an iterative update for the parameters $\pi$ and $\mathbf{P}$ in the M-step of EM.
+
+For numerical stability, we can compute the maximisation step for the MAP of $\mathbf{P}$,$\hat{\mathbf{P}}_{dk}^{MAP}$:
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} = 0$$
+where
+$$E' = \sum_{n=1}^N q(s^{(n)}) \log P(\mathbf{P} | \pi, x^{(n)}, s^{(n)})$$
+and
+$$\log P(\mathbf{P} | \pi, x^{(n)}, s^{(n)}) = \log P( x^{(n)}, s^{(n)} | \pi, \mathbf{P} ) + \log P(\mathbf{P}) - \log P(x^{(n)}, s^{(n)} | \pi)$$
+Assuming the same independent Beta prior on each pixel of each component:
+$$\log P(\mathbf{P}) = \sum_{k=1}^K \sum_{d=1}^D -\log (B(\alpha, \beta)) + (\alpha-1)\log \mathbf{P}_{dk} + (\beta-1)\log(1-\mathbf{P}_{dk})$$
+and
+$$\frac{\partial \log P(\mathbf{P})}{\partial \mathbf{P}_{dk}} = \frac{(\alpha-1)}{\mathbf{P}_{dk}} -  \frac{(\beta-1)}{1-\mathbf{P}_{dk}}$$`
+Thus, the derivative can be expressed as:
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \sum_n \Bigg(r_{nk} \bigg(\frac{\partial \log P( x^{(n)}, s^{(n)} | \pi, \mathbf{P} )}{\partial \mathbf{P}_{dk}} + \frac{\partial \log P(\mathbf{P})}{\partial \mathbf{P}_{dk}} \bigg) \Bigg)$$
+Substituting the appropriate expressions:
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \sum_n \Bigg(r_{nk} \bigg(\frac{x^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-x^{(n)}_{d}}{1-\mathbf{P}_{dk}} + \frac{(\alpha-1)}{\mathbf{P}_{dk}} -  \frac{(\beta-1)}{1-\mathbf{P}_{dk}} \bigg) \Bigg)$$
+Simplifying:
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \frac{(\alpha-1)+\sum_n r_{nk} x^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{(\beta-1)+\sum_n r_{nk} (1-x^{(n)}_{d})}{1-\mathbf{P}_{dk}}$$
+
+This form is very similar to Question 2 (c). By a similar argument, we can see that the second derivative will always be negative (additionally $r_{nk}\geq 0$ and $\sum_n r_{nk}=1$ ), ensuring a maximum in the calculation of the next step.
+
+Setting $\frac{\partial E'}{\partial \mathbf{P}_{dk}}=0$ we can calculate $\hat{\mathbf{P}}_{dk}^{MAP}$:
+
+$$\hat{\mathbf{P}}_{dk}^{MAP} = \frac{\alpha - 1 +\sum_n r_{nk} x^{(n)}_{d}}{(N+\alpha+\beta-2)}$$
 
 \newpage
-\item[(d)] The Python code for the EM algorithm:
+\item[(d)] Plotting the posterior likelihood as a function of the iteration number:
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.35]{outputs/q3/q3e-0-log-pos}
+\caption{Log Likelihood vs Iteration Number}
+\label{fig:3d-log-like}
+\end{figure}
+
+where $epsilon$ is the stopping condition for the posterior posterior converges.
+
+\newpage
+
+Displaying the parameters found for $K$ in $\{2, 3, 4, 7, 10\}$:
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-0-initialised-p}
+  \caption{Randomly initialised parameters}
+  \label{fig:3d-initialised-p}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-0-optimised-p}
+  \caption{EM optimised parameters}
+  \label{fig:3d-optimised-p}
+\end{figure}
+
+%\begin{minipage}{0.5\textwidth}
+
+%\end{minipage}%
+%\begin{minipage}{0.5\textwidth}
+%  \centering
+%  \includegraphics[scale=0.3]{outputs/q3/q3e-0-optimised-p}
+%  \caption{EM optimised parameters}
+%  \label{fig:3d-optimised-p}
+%\end{minipage}
+%\end{figure}
+
+\newpage
+The Python code for the EM algorithm:
 \lstinputlisting[language=Python]{src/solutions/q3.py}
 \newpage
-Run your algorithm on the data set for values of K in {2, 3, 4, 7, 10}. Plot the log likelihood as a function of the iteration number, and display the parameters found. [30 marks]
+\item[(e)] Running the algorithm a few times starting from randomly chosen initial conditions and visualising the parameters:
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-0-optimised-p}
+  \caption{EM optimised parameters: Trial 0}
+  \label{fig:3e-initialised-p-trial-0}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-1-optimised-p}
+  \caption{EM optimised parameters: Trial 1}
+  \label{fig:3e-initialised-p-trial-1}
+\end{figure}
+\newpage
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-2-optimised-p}
+  \caption{EM optimised parameters: Trial 2}
+  \label{fig:3e-initialised-p-trial-2}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{outputs/q3/q3e-3-optimised-p}
+  \caption{EM optimised parameters: Trial 3}
+  \label{fig:3e-initialised-p-trial-3}
+\end{figure}
 
 
-\item[(e)] Run the algorithm a few times starting from randomly chosen initial conditions. Do you obtain the same solutions (up to permutation)? Does this depend on K? Show the learned probability vectors as images.
 
-Comment on how well the algorithm works, whether it finds good clusters (look at the cluster means and responsibilities and try to interpret them), and how you might improve the model. [10 marks]
+%\begin{figure}[h]
+%\centering
+%\begin{minipage}{0.5\textwidth}
+%  \centering
+%  \includegraphics[scale=0.5]{outputs/q3/q3e-0-optimised-p}
+%  \caption{EM optimised parameters: Trial 0}
+%  \label{fig:3e-initialised-p-trial-0}
+%\end{minipage}%
+%\begin{minipage}{0.5\textwidth}
+%  \centering
+%  \includegraphics[scale=0.5]{outputs/q3/q3e-1-optimised-p}
+%  \caption{EM optimised parameters: Trial 1}
+%  \label{fig:3e-initialised-p-trial-1}
+%\end{minipage}
+%\end{figure}
+%\begin{figure}[h]
+%\centering
+%\begin{minipage}{0.5\textwidth}
+%  \centering
+%  \includegraphics[scale=0.5]{outputs/q3/q3e-2-optimised-p}
+%  \caption{EM optimised parameters: Trial 2}
+%  \label{fig:3e-initialised-p-trial-2}
+%\end{minipage}%
+%\begin{minipage}{0.5\textwidth}
+%  \centering
+%  \includegraphics[scale=0.5]{outputs/q3/q3e-3-optimised-p}
+%  \caption{EM optimised parameters: Trial 3}
+%  \label{fig:3e-initialised-p-trial-3}
+%\end{minipage}
+%\end{figure}
+
+For smaller k, we can visually see that we obtain very similar solutions (a 7 and a 0 for $k=2$). However for higher K, we see that this may not always be the case. For Trial 0 of $k=10$, we have two 0's whereas in Trial 1 we have three 0's. Interestingly, the zeros are all different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
+
+\newpage
+
+Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_1$ and $\pi_2$ of trial 2). The corresponding parameter visualisations will essentially never be utilised because no probability is assigned to the component. This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images. We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some clusters are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see four or five clusters with TSNE.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.35]{outputs/q3/q3e-0-tsne}
+  \caption{TSNE Visualisation of Image responsibilities: Trial 0}
+  \label{fig:3e-tsne-0}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.35]{outputs/q3/q3e-1-tsne}
+  \caption{TSNE Visualisation of Image responsibilities: Trial 1}
+  \label{fig:3e-tsne-1}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.35]{outputs/q3/q3e-2-tsne}
+  \caption{TSNE Visualisation of Image responsibilities: Trial 2}
+  \label{fig:3e-tsne-2}
+\end{figure}
+\newpage
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.35]{outputs/q3/q3e-3-tsne}
+  \caption{TSNE Visualisation of Image responsibilities: Trial 3}
+  \label{fig:3e-tsne-3}
+\end{figure}
+
+Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balancing maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure non-zero mixing components unlike the components visualised here. This can help promote more meaningful clusters as $k$ increases.
 
 \end{enumerate}
 

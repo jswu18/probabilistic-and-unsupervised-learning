@@ -41,7 +41,7 @@ if __name__ == "__main__":
         os.makedirs(Q3_OUTPUT_FOLDER)
     q3.e(
         x,
-        number_of_trials=3,
+        number_of_trials=4,
         ks=[2, 3, 4, 7, 10],
         epsilon=1e-1,
         max_number_of_steps=int(1e2),

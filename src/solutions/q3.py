@@ -51,15 +51,13 @@ class Theta:
         return np.repeat(self.log_pi, n, axis=0)
 
 
-def _init_params(k: int, d: int, seed: int = DEFAULT_SEED) -> Theta:
+def _init_params(k: int, d: int) -> Theta:
     """
     Random initialisation of theta parameters (log_pi and log_p_matrix)
     :param k: Number of components
     :param d: Image dimension (number of pixels in a single image)
-    :param seed: seed initialisation for random methods
     :return: theta: the parameters of the model
     """
-    np.random.seed(seed)
     return Theta(
         log_pi=np.log(np.random.dirichlet(np.ones(k), size=1)),
         log_p_matrix=np.log(np.random.uniform(low=0, high=1, size=(d, k))),
@@ -146,36 +144,20 @@ def _compute_log_p_matrix_hat(
         log_responsibility[:, np.newaxis, :], d, axis=1
     )  # (n, d, k)
 
-    log_p_matrix_unnormalised_likelihood = logsumexp(
-        log_responsibility_repeated, b=x_repeated, axis=0
-    )  # (d, k)
-    log_p_matrix_normaliser_likelihood = np.array(
-        logsumexp(log_responsibility_repeated, axis=0)
-    )  # (d, k)
-
     alpha = 2
     beta = 2
+
     log_p_matrix_unnormalised_posterior = logsumexp(
-        np.stack(
-            (
-                (alpha - 1) * np.ones(log_p_matrix_unnormalised_likelihood.shape),
-                log_p_matrix_unnormalised_likelihood,
-            ),
-            axis=0,
-        ),
-        axis=0,
-    )
+        log_responsibility_repeated, b=(x_repeated + alpha - 1), axis=0
+    )  # (d, k)
+
     log_p_matrix_normaliser_posterior = logsumexp(
-        np.stack(
-            (
-                (alpha + beta - 2) * np.ones(log_p_matrix_normaliser_likelihood.shape),
-                log_p_matrix_normaliser_likelihood,
-            ),
-            axis=0,
-        ),
-        axis=0,
+        log_responsibility_repeated, b=(alpha + beta - 1), axis=0
+    )  # (d, k)
+
+    log_p_matrix_normalised_posterior = (
+        log_p_matrix_unnormalised_posterior - log_p_matrix_normaliser_posterior
     )
-    log_p_matrix_normalised_posterior = log_p_matrix_unnormalised_posterior - log_p_matrix_normaliser_posterior
     return log_p_matrix_normalised_posterior
 
 
@@ -256,20 +238,31 @@ def _plot_p_matrix(
 
 
 def _plot_tsne_responsibility_clusters(
-    log_responsibilities: List[np.ndarray], ks: List[int], figure_title: str, figure_path: str
+    log_responsibilities: List[np.ndarray],
+    ks: List[int],
+    figure_title: str,
+    figure_path: str,
 ):
     n = len(ks)
     fig = plt.figure()
-    fig.set_figwidth(5*n)
+    fig.set_figwidth(5 * n)
     fig.set_figheight(5)
     for i, k in enumerate(ks):
-        embedding = TSNE(n_components=2, learning_rate='auto', init='random', perplexity=10).fit_transform(
-            log_responsibilities[i])
-        ax = plt.subplot(1, n, i+1)
+        if k > 2:
+            embedding = TSNE(
+                n_components=2,
+                learning_rate="auto",
+                init="random",
+                perplexity=10,
+                random_state=DEFAULT_SEED,
+            ).fit_transform(log_responsibilities[i])
+        else:
+            embedding = np.exp(log_responsibilities[i])
+        ax = plt.subplot(1, n, i + 1)
         ax.scatter(embedding[:, 0], embedding[:, 1])
         ax.set_title(f"{k=}")
     fig.suptitle(figure_title)
-    plt.savefig(figure_path,bbox_inches='tight')
+    plt.savefig(figure_path, bbox_inches="tight")
 
 
 def _plot_log_posteriors(
@@ -302,16 +295,14 @@ def e(
     figure_title: str,
 ) -> None:
     n, d = x.shape
-    seeds = np.random.randint(
-        low=number_of_trials * len(ks), size=(number_of_trials, len(ks))
-    )
+    np.random.seed(DEFAULT_SEED)
     for i in range(number_of_trials):
         init_thetas = []
         em_thetas = []
         log_posteriors = []
         log_responsibilities = []
         for j, k in enumerate(ks):
-            init_theta = _init_params(k, d, seed=seeds[i, j])
+            init_theta = _init_params(k, d)
             em_theta, log_responsibility, log_posterior = _run_expectation_maximisation(
                 x,
                 theta=init_theta,

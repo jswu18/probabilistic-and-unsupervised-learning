@@ -4,7 +4,9 @@ import numpy as np
 
 def _compute_maximum_likelihood_estimate(x: np.ndarray) -> np.ndarray:
     """
-    X: numpy array of shape (N, D)
+    Calculates MLE of images
+    :param x: numpy array of shape (N, D)
+    :return: MLE estimate
     """
     return np.mean(x, axis=0)
 
@@ -13,16 +15,25 @@ def _compute_maximum_a_priori_estimate(
     x: np.ndarray, alpha: float, beta: float
 ) -> np.ndarray:
     """
-    X: numpy array of shape (N, D)
-    alpha: param of prior distribution
-    beta: param of prior distribution
+    Calculates MAP estimate of images
+    :param x: numpy array of shape (N, D)
+    :param alpha: param of prior distribution
+    :param beta: param of prior distribution
+    :return: MAP estimate
     """
 
     n, _ = x.shape
     return (alpha - 1 + np.sum(x, axis=0)) / (n + alpha + beta - 2)
 
 
-def d(x, figure_path, figure_title):
+def d(x: np.ndarray, figure_path: str, figure_title: str) -> None:
+    """
+    Produces answers for question 1d
+    :param x: numpy array of shape (N, D)
+    :param figure_path: path to store figure
+    :param figure_title: figure title
+    :return:
+    """
     maximum_likelihood = _compute_maximum_likelihood_estimate(x)
     plt.figure()
     plt.imshow(
@@ -35,7 +46,18 @@ def d(x, figure_path, figure_title):
     plt.savefig(figure_path)
 
 
-def e(x, alpha, beta, figure_path, figure_title):
+def e(
+    x: np.ndarray, alpha: float, beta: float, figure_path: str, figure_title: str
+) -> None:
+    """
+    Produces answers for question 1e
+    :param x: numpy array of shape (N, D)
+    :param alpha: param of prior distribution
+    :param beta: param of prior distribution
+    :param figure_path: path to store figure
+    :param figure_title: figure title
+    :return:
+    """
     maximum_a_priori = _compute_maximum_a_priori_estimate(x, alpha, beta)
     plt.figure()
     plt.imshow(

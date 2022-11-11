@@ -12,16 +12,14 @@ from src.constants import (
 from src.solutions import q1, q2, q3, q5
 
 if __name__ == "__main__":
-
     if not os.path.exists(OUTPUTS_FOLDER):
         os.makedirs(OUTPUTS_FOLDER)
-
     x = np.loadtxt(BINARY_DIGITS_FILE_PATH)
+
     # Question 1
     Q1_OUTPUT_FOLDER = os.path.join(OUTPUTS_FOLDER, "q1")
     if not os.path.exists(Q1_OUTPUT_FOLDER):
         os.makedirs(Q1_OUTPUT_FOLDER)
-
     q1.d(
         x,
         figure_path=os.path.join(Q1_OUTPUT_FOLDER, "q1d.png"),
@@ -59,21 +57,18 @@ if __name__ == "__main__":
     Q5_OUTPUT_FOLDER = os.path.join(OUTPUTS_FOLDER, "q5")
     if not os.path.exists(Q5_OUTPUT_FOLDER):
         os.makedirs(Q5_OUTPUT_FOLDER)
-
     with open(TRAINING_TEXT_FILE_PATH) as fp:
         training_text = fp.read().replace("\n", "").lower()
     with open(SYMBOLS_FILE_PATH) as fp:
         symbols = fp.read().split("\n")
     with open(MESSAGE_FILE_PATH) as fp:
         encrypted_message = fp.read()
-
     q5.a(
         symbols,
         training_text,
         transition_matrix_path=os.path.join(Q5_OUTPUT_FOLDER, "q5a-transition.csv"),
         invariant_distribution_path=os.path.join(Q5_OUTPUT_FOLDER, "q5a-invariant.csv"),
     )
-
     q5.d(
         encrypted_message,
         symbols,
@@ -81,8 +76,8 @@ if __name__ == "__main__":
         number_trials=10,
         number_of_mh_loops=int(1e4),
         number_start_attempts=int(1e4),
-        check_decryption_interval=100,
-        check_decryption_size=60,
+        log_decryption_interval=100,
+        log_decryption_size=60,
         decryptor_table_path=os.path.join(Q5_OUTPUT_FOLDER, "q5d-decrypter.csv"),
         decrypted_message_iterations_table_path=os.path.join(
             Q5_OUTPUT_FOLDER, "q5d-iterations.csv"

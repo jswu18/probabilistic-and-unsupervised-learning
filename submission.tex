@@ -772,6 +772,57 @@ The local extrema are $(x=0, y=1)$ when our $\lambda=-1$ and $(x=0, y=-1)$ when 
              Simplifying:
              $$x_{n+1} = x_{n} + \frac{a}{\exp(x_n)} - 1$$
 \end{enumerate}
+\end{enumerate}
+
+\newpage
+\section*{Question 8}
+\begin{enumerate}
+\item[(a)] For:
+$$\sup_{\{\textbf{x}\in \mathbb{R}^n\}} R_A(\textbf{x})$$
+where $R_A(\textbf{x}) = \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$, we want to show that a maximum is attained.
+
+To do this, we will show the above optimisation can be equivalently formulated:
+$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} R_A(\textbf{x})$$
+We begin by considering any $\textbf{w} \in \mathbb{R}^n$ and let $\textbf{x} = \frac{\textbf{w}}{\|\textbf{w}\|}$. Because $\|\textbf{x}\| = 1$ we can substitute:
+$$\sup_{\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n | \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\}} R_A(\textbf{x}) = \sup_{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
+where $\|\textbf{x}\|^2 = \textbf{x}^T\textbf{x}$.
+
+The set $\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n | \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\}$ holds for all $\textbf{w} \in \mathbb{R}^n$ so we can rewrite:
+$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
+We can simplify the expression:
+$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} }{\textbf{w}^T\textbf{w}}$$
+$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} R_A(\textbf{w})$$
+
+and recover our original optimisation problem by letting $\textbf{x}=\textbf{w}$, showing that it is equivalent to the supremum over the unit sphere. Assuming the set containing the unit sphere is compact, the extreme value theory of calculus states that $\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} R_A(\textbf{x})$ is attained so equivalently $\sup_{\{\textbf{x}\in \mathbb{R}^n\}} R_A(\textbf{x})$ is attained as required.
+
+\item[(b)] We can now reformulate the optimisation as:
+$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$$
+But because $\| \textbf{x}\|=1$, we can equivalently write:
+$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} \textbf{x}^T\textbf{Ax}}$$
+Thus, showing $\textbf{x}^T\textbf{Ax}} \leq \lambda_1$ will be equivalent to showing $R_A(\textbf{x}) \leq \lambda_1$ for $\|\textbf{x}\|=1$.
+We know that for all $\textbf{x} \in \mathbb{R}^n$:
+$$\textbf{x} = \sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i$$
+so we can write:
+$$\textbf{x}^T\textbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\textbf{A}\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i\bigg)$$
+Given that $\xi_i$ are eigenvectors of $\textbf{A}$ corresponding to eigenvalues $\lambda_i$:
+$$\textbf{x}^T\textbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\bigg(\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x}) \xi_i\bigg)$$
+Given that the eigenvectors $\xi_i$ form an orthonormal basis, we know that $\xi_i^T\xi_j = 0$ when $i\neq j$ and $\xi_i^T\xi_j = 1$ when $i=j$, so:
+$$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$$
+We know that $\|\textbf{x}\|^2 = 1$ so $\|\textbf{x}\|^2 = \sum_{j=1}^{n} x_i^2 = \sum_{j=1}^{n} (\xi_j \textbf{x})^2 = 1$. Thus the quantity $\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$ is simply a weighted average of $\lambda_i$'s and we can write:
+$$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \lambda_1$$
+where $\lambda_1$ is the largest eigenvalue of eigenvalues $\lambda_i$. Therefore, $R_A(\textbf{x}) \leq \lambda_1$ as required.
+
+\item[(c)] Given that $\lambda_j < \lambda_1 \forall j > k$ and $\textbf{x} \in span\{\xi_{k+1}, ..., xi_{n}\}$, we can rewrite $\textbf{x}$:
+$$\textbf{x} = \sum_{i=k+1}^n (\xi_i^T \textbf{x}) \xi_i$$
+From the same argument as (b) we can bound $\textbf{x}^T\textbf{Ax}}$:
+$$\textbf{x}^T\textbf{Ax}} = \sum_{i=k+1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \max\{\lambda_{k+1}, ..., \lambda_n\}$$
+But given that the maximum eigenvalue $\lambda_1$ is not contained in $\{\lambda_{k+1}, ..., \lambda_n\}$:
+$$\max\{\lambda_{k+1}, ..., \lambda_n\} < \lambda_1$$
+and therefore,
+$$R_A(\textbf{x}) < \lambda_1$$
+as required.
+
+
 
 
 \end{enumerate}

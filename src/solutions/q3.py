@@ -12,6 +12,7 @@ from src.constants import DEFAULT_SEED
 @dataclass
 class Theta:
     """
+    Data class containing the model parameters
     log_pi: the logarithm of the mixing proportions (1, k)
     log_p_matrix: the logarithm of the probability where the (i,j)th element is the probability that
                   pixel j takes value 1 under mixture component i (d, k)
@@ -21,11 +22,19 @@ class Theta:
     log_p_matrix: np.ndarray
 
     @property
-    def pi(self):
+    def pi(self) -> np.ndarray:
+        """
+        Calculates the mixing proportions
+        :return: vector of mixing proportions (1, k)
+        """
         return np.exp(self.log_pi)
 
     @property
-    def p_matrix(self):
+    def p_matrix(self) -> np.ndarray:
+        """
+        Calculates the Bernoulli parameters
+        :return: matrix Bernoulli parameters (d, k)
+        """
         d, k = self.log_p_matrix.shape
         image_dimension = int(np.sqrt(d))
         return np.exp(self.log_p_matrix).reshape(image_dimension, image_dimension, -1)
@@ -201,9 +210,17 @@ def _run_expectation_maximisation(
     return theta, log_responsibility, log_likelihoods
 
 
-def _plot_p_matrix(
+def _visualise_p_matrix(
     thetas: List[Theta], ks: List[int], figure_title: str, figure_path: str
-):
+) -> None:
+    """
+    Visualises the P matrix for different thetas and ks
+    :param thetas: list of Theta instances
+    :param ks: list of k values used for each Theta
+    :param figure_title: name of figure
+    :param figure_path: path to store figure
+    :return:
+    """
     n = len(ks)
     m = np.max(ks)
     fig = plt.figure()
@@ -237,12 +254,20 @@ def _plot_p_matrix(
     plt.savefig(figure_path)
 
 
-def _plot_tsne_responsibility_clusters(
+def _visualise_responsibility_clusters(
     log_responsibilities: List[np.ndarray],
     ks: List[int],
     figure_title: str,
     figure_path: str,
-):
+) -> None:
+    """
+    Visualise responsibility vectors of images using TSNE for different k values
+    :param log_responsibilities: list of log responsibilities for different ks
+    :param ks: list of k values used for each Theta
+    :param figure_title: name of figure
+    :param figure_path: path to store figure
+    :return:
+    """
     n = len(ks)
     fig = plt.figure()
     fig.set_figwidth(5 * n)
@@ -272,6 +297,15 @@ def _plot_log_posteriors(
     figure_title: str,
     figure_path: str,
 ) -> None:
+    """
+    Plot log posteriors as a function of EM iteration for different ks
+    :param log_posteriors: list of vectors, each representing the log posterior during EM for a specific k
+    :param ks: list of k values used for each Theta
+    :param epsilon: value used for early stopping of EM
+    :param figure_title: name of figure
+    :param figure_path: path to store figure
+    :return:
+    """
     fig, ax = plt.subplots(len(ks), 1, constrained_layout=True)
     fig.set_figwidth(10)
     fig.set_figheight(10)
@@ -294,13 +328,24 @@ def e(
     figure_path: str,
     figure_title: str,
 ) -> None:
+    """
+    Produces answers for question 3e
+    :param x: numpy array of shape (N, D)
+    :param number_of_trials: number of trails to run EM
+    :param ks: k values to use for each trial
+    :param epsilon: value used for early stopping of EM
+    :param max_number_of_steps: maximum number of steps during EM
+    :param figure_title: base name of figures
+    :param figure_path: base paths to store figure
+    :return:
+    """
     n, d = x.shape
     np.random.seed(DEFAULT_SEED)
     for i in range(number_of_trials):
-        init_thetas = []
-        em_thetas = []
-        log_posteriors = []
-        log_responsibilities = []
+        init_thetas: List[Theta] = []
+        em_thetas: List[Theta] = []
+        log_posteriors: List[List[float]] = []
+        log_responsibilities: List[np.ndarray] = []
         for j, k in enumerate(ks):
             init_theta = _init_params(k, d)
             em_theta, log_responsibility, log_posterior = _run_expectation_maximisation(
@@ -314,19 +359,19 @@ def e(
             log_responsibilities.append(log_responsibility)
             log_posteriors.append(log_posterior)
 
-        _plot_p_matrix(
+        _visualise_p_matrix(
             init_thetas,
             ks,
             figure_title=f"{figure_title} Trial {i}: Initialised P",
             figure_path=f"{figure_path}-{i}-initialised-p.png",
         )
-        _plot_p_matrix(
+        _visualise_p_matrix(
             em_thetas,
             ks,
             figure_title=f"{figure_title} Trial {i}: EM Optimised P",
             figure_path=f"{figure_path}-{i}-optimised-p.png",
         )
-        _plot_tsne_responsibility_clusters(
+        _visualise_responsibility_clusters(
             log_responsibilities,
             ks,
             figure_title=f"{figure_title} Trial {i}: TSNE Responsibility Visualisation",

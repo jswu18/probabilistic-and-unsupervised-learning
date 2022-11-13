@@ -45,6 +45,8 @@ if __name__ == "__main__":
         os.makedirs(Q3_OUTPUT_FOLDER)
     q3.e(
         x,
+        alpha=2,
+        beta=2,
         number_of_trials=4,
         ks=[2, 3, 4, 7, 10],
         epsilon=1e-1,
@@ -78,6 +80,7 @@ if __name__ == "__main__":
         number_start_attempts=int(1e4),
         log_decryption_interval=100,
         log_decryption_size=60,
+        trial_decryptions_table_path=os.path.join(Q5_OUTPUT_FOLDER, "q5d-trials.csv"),
         decryptor_table_path=os.path.join(Q5_OUTPUT_FOLDER, "q5d-decrypter.csv"),
         decrypted_message_iterations_table_path=os.path.join(
             Q5_OUTPUT_FOLDER, "q5d-iterations.csv"

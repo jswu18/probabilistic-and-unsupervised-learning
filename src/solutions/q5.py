@@ -117,7 +117,8 @@ class Statistics:
     @staticmethod
     def _construct_symbols_dictionary(symbols: List[str]) -> Dict[str, int]:
         """
-        Construct a dictionary mapping each symbol to an integer
+        Construct a dictionary mapping each symbol to an integer to index the transition matrix
+        and the invariant distribution
         :param symbols: list of symbols to map
         :return: symbol to integer mapping
         """
@@ -269,8 +270,8 @@ class MetropolisHastingsDecryption:
     def _find_good_starting_decrypter(
         self,
         statistics: Statistics,
-        encrypted_message,
-        number_start_attempts,
+        encrypted_message: str,
+        number_start_attempts: int,
     ) -> Decrypter:
         """
         Find a good starting decrypter for the sampler by choosing the one with the best log likelihood
@@ -331,17 +332,17 @@ class MetropolisHastingsDecryption:
         return decrypter, logged_decryption_message
 
 
-def _construct_logged_decryptions_table(
-    logged_decryption_message, log_decryption_interval
+def _construct_decryptions_table(
+    decryption_messages: List[str], decryption_interval: int, columns: List[str]
 ) -> pd.DataFrame:
     decrypted_message_iterations_table = pd.DataFrame(
         [
-            np.arange(0, len(logged_decryption_message)) * log_decryption_interval,
-            logged_decryption_message,
+            np.arange(0, len(decryption_messages)) * decryption_interval,
+            decryption_messages,
         ]
     ).transpose()
-    decrypted_message_iterations_table.columns = ["MH Iteration", "Current Decryption"]
-    return decrypted_message_iterations_table.set_index("MH Iteration")
+    decrypted_message_iterations_table.columns = columns
+    return decrypted_message_iterations_table.set_index(columns[0])
 
 
 def a(
@@ -375,6 +376,7 @@ def d(
     number_start_attempts: int,
     log_decryption_interval: int,
     log_decryption_size: int,
+    trial_decryptions_table_path: str,
     decryptor_table_path: str,
     decrypted_message_iterations_table_path: str,
 ) -> None:
@@ -388,6 +390,7 @@ def d(
     :param number_start_attempts: number of possible starting decrypters to check
     :param log_decryption_interval: number of samples between logging the decrypted message
     :param log_decryption_size: number of symbols to decrypt when logging the decrypted message
+    :param trial_decryptions_table_path: path to store decryption messages for each trial
     :param decryptor_table_path: path to store decrypter mapping table
     :param decrypted_message_iterations_table_path: path to store logged decryption messages
     :return:
@@ -419,11 +422,19 @@ def d(
         decryption_messages.append(
             decrypter.decrypt(encrypted_message)[:log_decryption_size]
         )
+    df_trial_decryptions = _construct_decryptions_table(
+        decryption_messages=[x[:log_decryption_size] for x in decryption_messages],
+        decryption_interval=1,
+        columns=["Trial", "Decryption"],
+    )
+    df_trial_decryptions.to_csv(trial_decryptions_table_path, sep="|")
 
     # sort trials by log likelihood
     best_trial = np.argmax(log_likelihoods)
     decrypters[best_trial].table.to_csv(decryptor_table_path, sep="|")
-    df_logged_decryptions = _construct_logged_decryptions_table(
-        logged_decryption_messages[best_trial], log_decryption_interval
+    df_logged_decryptions = _construct_decryptions_table(
+        decryption_messages=logged_decryption_messages[best_trial],
+        decryption_interval=log_decryption_interval,
+        columns=["MH Iteration", "Current Decryption"],
     )
     df_logged_decryptions.to_csv(decrypted_message_iterations_table_path, sep="|")

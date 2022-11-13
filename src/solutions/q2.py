@@ -20,8 +20,8 @@ def _log_p_d_given_m2(x: np.ndarray):
     :return: log likelihood
     """
     n, d = x.shape
-    k = np.sum(x, axis=0).astype(int)
-    return betaln(np.sum(k) + 1, n * d - np.sum(k) + 1)
+    k = np.sum(x).astype(int)
+    return betaln(k + 1, n * d - k + 1)
 
 
 def _log_p_d_given_m3(x: np.ndarray):
@@ -31,8 +31,8 @@ def _log_p_d_given_m3(x: np.ndarray):
     :return: log likelihood
     """
     n, _ = x.shape
-    k = np.sum(x, axis=0).astype(int)
-    return logsumexp(betaln(k + 1, n - k + 1))
+    k_d = np.sum(x, axis=0).astype(int)
+    return logsumexp(betaln(k_d + 1, n - k_d + 1))
 
 
 def _log_p_model_given_data(x) -> np.ndarray:

@@ -59,30 +59,31 @@
 
 \begin{enumerate}
 
-\item[(a)] Our sample space for images is $\{0, 1\}^D$, where each of our D dimensions can only take binary values, D being the number of pixels in the image.
+\item[(a)] Our sample space for images is $\{0, 1\}^D$, where each of our D dimensions can only take binary values (D being the number of pixels in the image).
 The exponential family best suited on this sample space is the D-dimensional multivariate Bernoulli distribution because it shares the same sample space.
 On the other hand, a D-dimensional multivariate Gaussian has the sample space $\mathbb{R}^D$, which does not match the sample space of our data.
-To match our data sample space, we might have to define an additional mapping between our data and model spaces, adding unnecessary complexity.
+%To match our data sample space, we might have to define an additional mapping between our data and model spaces, adding unnecessary complexity.
+It is not immediately clear how the likelihood of an image of binary (discrete) values would be calculated under the continuous distribution of a multivariate Gaussian.
 Thus it would be inappropriate to model this dataset of images with a multivariate Gaussian.
 
-\item[(b)] For $\{\textbf{x}^{(n)}\}_{n=1}^N$, a data set of N images, the joint likelihood (assuming images are independently and identically distributed) is the product of N D-dimensional multivariate Bernoulli distributions, one for each image:
+\item[(b)] For $\{\textbf{x}^{(n)}\}_{n=1}^N$, a data set of N images, the joint likelihood (assuming images are independently and identically distributed) is the product of N, D-dimensional multivariate Bernoulli distributions:
 $$P(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p}) = \prod_{n=1}^N P(\textbf{x}^{(n)} | \textbf{p})$$
 Substituting the D-dimensional multivariate Bernoulli:
 $$P(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p}) = \prod_{n=1}^{N}\prod_{d=1}^{D} p_d^{x_d^{(n)}} (1-p_d)^{1-x_d^{(n)}}$$
-Taking the logarithm of this, we get the log likelihood:
+Taking the logarithm, we get the log likelihood:
 $$\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p}) = \sum_{n=1}^{N}\sum_{d=1}^{D} [x_d^{(n)}\log(p_d) +  (1-x_d^{(n)})\log(1-p_d)]$$
 Note that since the logarithm is a monotonically increasing function on $\mathbb{R}_+$, the maximisers and minimisers of the likelihood do not change.
 Thus, to solve for the maximum likelihood estimate, $\hat p_d$, we can take the derivative of $\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})$ with respect to $p_d$, the $d^{th}$ element of $\textbf{p}$:
 $$\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d} = \sum_{n=1}^{N} (\frac{x_d^{(n)}}{p_d} -  \frac{1-x_d^{(n)}}{1-p_d})$$
 $$\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d} = \frac{\sum_{n=1}^{N} x_d^{(n)}}{p_d} -  \frac{\sum_{n=1}^{N} (1-x_d^{(n)})}{1-p_d}$$
-and set the derivative to zero and solve for $\hat p_d$:
+and set the derivative to zero to solve for $\hat p_d$:
 $$\frac{\sum_{n=1}^{N} x_d^{(n)}}{\hat p_d} -  \frac{\sum_{n=1}^{N} (1-x_d^{(n)})}{1-\hat p_d} = 0$$
 $$ \sum_{n=1}^{N} x_d^{(n)} - \hat p_d\sum_{n=1}^{N} x_d^{(n)} - \hat p_d  \cdot N + \hat p_d \sum_{n=1}^{N}x_d^{(n)} = 0$$
 $$  \hat p_d = \frac{1}{N}\sum_{n=1}^{N} x_d^{(n)}$$
-Moreover, the second derivative with respect to $p_d$:
-$$\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d^2} = \frac{-\sum_{n=1}^{N} x_d^{(n)}}{p_d^2} +  \frac{-\sum_{n=1}^{N} (1-x_d^{(n)})}{(1-p_d)^2}$$
-For a maximum, we need to show that the second derivative is negative.
-Since $x_d^{(n)} \in \{0, 1\}$, in the worst case, of $N=1$, the single pixel $x_d^{(1)}$ must either be white ($\sum_{n=1}^{N} x_d^{(n)}> 0$) or black ($\sum_{n=1}^{N} 1-x_d^{(n)} > 0$) with the other being zero,  $\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d^2} < 0$ will be guaranteed and $\hat p_d$ is a maximum as required for the maximum likelihood estimate.
+%Moreover, the second derivative with respect to $p_d$:
+%$$\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d^2} = \frac{-\sum_{n=1}^{N} x_d^{(n)}}{p_d^2} +  \frac{-\sum_{n=1}^{N} (1-x_d^{(n)})}{(1-p_d)^2}$$
+%For a maximum, we need to show that the second derivative is negative.
+%Since $x_d^{(n)} \in \{0, 1\}$, in the worst case, of $N=1$, the single pixel $x_d^{(1)}$ must either be white ($\sum_{n=1}^{N} x_d^{(n)}> 0$) or black ($\sum_{n=1}^{N} 1-x_d^{(n)} > 0$) with the other being zero, so  $\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d^2} < 0$ will be guaranteed and $\hat p_d$ is a maximum as required for the maximum likelihood estimate.
 
 Because we assume that each pixel is independent (we are taking the product of D one dimensional Bernoulli distributions), we can express the maximum likelihood for $\textbf{p}$ in vectorised form as $\hat{\textbf{p}}^{MLE}$:
 $$\hat{\textbf{p}}^{MLE} = \frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$$
@@ -103,9 +104,9 @@ where $\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N)}{\partial p_d}$=0
 
 We know from (b):
 $$\frac{\partial\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^N|\textbf{p})}{\partial p_d} = \frac{\sum_{n=1}^{N} x_d^{(n)}}{p_d} -  \frac{\sum_{n=1}^{N} (1-x_d^{(n)})}{1-p_d}$$
-For the second term $\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d}$, we start with $P(\textbf{p}))$, assuming each pixel to have an independent prior:
+For the second term $\frac{\partial\mathcal{L}(\textbf{p})}{\partial p_d}$, we start with $P(\textbf{p})$, assuming each pixel to have an independent prior:
 $$P(\textbf{p}) = \prod_{d=1}^D P(p_d)$$
-Assuming a Beta prior on each $p_d$:
+and assuming a Beta prior on each $p_d$:
 $$P(\textbf{p}) = \prod_{d=1}^D \frac{1}{B(\alpha, \beta)} p^{\alpha-1}_d (1-p_d)^{\beta-1}$$
 Taking the logarithm:
 $$\mathcal{L}(\textbf{p}) = \sum_{d=1}^{D} -\log (B(\alpha, \beta)) + (\alpha-1)\log p_d + (\beta-1)\log(1-p_d)$$
@@ -125,9 +126,9 @@ Cancelling the $\hat p_d\sum_{n=1}^{N} x_d^{(n)}$ terms:
 $$0 = \alpha-\alpha \hat{p_d} + \hat{p_d} - 1 +\sum_{n=1}^{N} x_d^{(n)} -  \hat{p_d}\beta+\hat{p_d} - \hat{p_d}\cdot N$$
 $$0 = \hat{p_d}(2-\alpha-\beta-N) + \alpha - 1 +\sum_{n=1}^{N} x_d^{(n)}$$
 $$\hat{p_d} =  \frac{\alpha - 1 +\sum_{n=1}^{N} x_d^{(n)}}{(N+\alpha+\beta-2)}$$
-To show that this is a maximum, the second derivative is:
-$$\frac{\partial^2\mathcal{L}(\textbf{p}|\{\textbf{x}^{(n)}\}_{n=1}^N)}{(\partial p_d)^2} = \frac{(1-\alpha) - \sum_{n=1}^{N} x_d^{(n)}}{(p_d)^2} +  \frac{(1-\beta) - \sum_{n=1}^{N} (1-x_d^{(n)})}{(1-p_d)^2}$$.
-For a maximum, we need $\frac{\partial^2\mathcal{L}(\textbf{p}|\{\textbf{x}^{(n)}\}_{n=1}^N)}{(\partial p_d)^2} < 0$ meaning that we need at least one of the strict inequalities $\alpha < 1- \sum_{n=1}^{N} x_d^{(n)}$ or $\beta < 1-\sum_{n=1}^{N} (1-x_d^{(n)})$ to be satisified, where the other can be $\leq$. The Beta distribution requires $\alpha > 0$ and $\beta > 0$ so this requirement will always be satisfied (in the worst case of a single image, either $x_d^{(1)}=1$ or $1-x_d^{(1)}=1$).
+%To show that this is a maximum, the second derivative is:
+%$$\frac{\partial^2\mathcal{L}(\textbf{p}|\{\textbf{x}^{(n)}\}_{n=1}^N)}{(\partial p_d)^2} = \frac{(1-\alpha) - \sum_{n=1}^{N} x_d^{(n)}}{(p_d)^2} +  \frac{(1-\beta) - \sum_{n=1}^{N} (1-x_d^{(n)})}{(1-p_d)^2}$$.
+%For a maximum, we need $\frac{\partial^2\mathcal{L}(\textbf{p}|\{\textbf{x}^{(n)}\}_{n=1}^N)}{(\partial p_d)^2} < 0$ meaning that we need at least one of the strict inequalities $\alpha < 1- \sum_{n=1}^{N} x_d^{(n)}$ or $\beta < 1-\sum_{n=1}^{N} (1-x_d^{(n)})$ to be satisified, where the other can be $\leq$. The Beta distribution requires $\alpha > 0$ and $\beta > 0$ so this requirement will always be satisfied (in the worst case of a single image, either $x_d^{(1)}=1$ or $1-x_d^{(1)}=1$).
 
 Due to independence of our likelihood and priors for each dimension, we can express the maximum a priori for \textbf{p} in vectorised form as $\hat{\textbf{p}}^{MAP}$:
 $$\hat{\textbf{p}}^{MAP} =   \frac{\alpha - 1 +\sum_{n=1}^{N} \textbf{x}^n}{(N+\alpha+\beta-2)}$$
@@ -171,8 +172,8 @@ Comparing the equations:
     $$\hat{\textbf{p}}^{MLE} = \frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$$
     and
     $$\hat{\textbf{p}}^{MAP}  =  \frac{\alpha - 1 +\sum_{n=1}^{N} \textbf{x}^n}{(N+\alpha+\beta-2)}$$
-As the number of data points increases, $\hat{\textbf{p}}^{MAP}$ approaches $\frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$, $\hat{\textbf{p}}^{MLE}$.
-This makes sense because as our data set gets bigger, we are less reliant on our prior.
+As the number of data points increases, $\hat{\textbf{p}}^{MAP}$ approaches $\frac{1}{N}\sum_{n=1}^{N} \textbf{x}^{(n)}$, the $\hat{\textbf{p}}^{MLE}$.
+This makes sense because as our data set gets bigger, the effect of the prior diminishes.
 However, if a specific pixel in all of the images of our data set are white or all black, the MLE for that pixel would either be 1 or 0.
 This may not be representative of our intuitions about images, as there should be some non-zero probability of a pixel being black or white.
 By introducing an appropriate prior we can ensure that the probability of that pixel will never be exactly zero or one.
@@ -188,11 +189,11 @@ Figure $\ref{fig:1e-comparison}$ visualises $\hat{\textbf{p}}^{MAP}-\hat{\textbf
   \end{figure}
 
 Priors can also help ensure numerical stability during calculations.
-The logarithm of zero is negative infinity, so having if the MLE is zero it can be problematic for log-likelihoods calculations whereas MAP can ensure non-zero probabilities.
+The logarithm of zero is negative infinity, so having if the MLE is zero it can be problematic for log-likelihood calculations whereas MAP can ensure non-zero probabilities.
 Interestingly, when $\alpha=\beta=1$, $\hat{\textbf{p}}^{MLE} = \hat{\textbf{p}}^{MAP}$.
 This is when the prior is a uniform distribution and so there is uniform bias on the location of $\textbf{p}$ and we recover the MLE.
 
-On the other hand, a mis-specified prior can be problematic, as the estimated parameters might be skewed by the prior and not properly represent the underlying data generating process, this can result in parameter estimates that are worse than using the MLE if our data set is limited.
+On the other hand, a mis-specified prior can be problematic, as the estimated parameters might be skewed by the prior and not properly represent the underlying data generating process, this can result in parameter estimates that are `worse' than using the MLE if our data set is limited in size.
 %In this example, we're using images of different digits as part of our data set. If a particular digit occurs more frequently in the data set, we will see that digit when visualising the MLE or MAP (the digit zero in this case), they simply provides the "average" image pixels. With a set of images with more equal representation of each digit, the parameter visualisation could be an image overlaying the different digits, which is not representative of the "most likely" image in the data. In this case where our data is likely clustered, using a multimodal likelihood is probably a better idea than the unimodal likelihood we've used.
 
 
@@ -207,24 +208,22 @@ On the other hand, a mis-specified prior can be problematic, as the estimated pa
 \newpage
 \section*{Question 2}
 
-
-
-When all D components are generated from a Bernoulli distribution with $p_d = 0.5$, we have the likelihood function for model $M_1$:
-$$P(\textbf{x}^{(n)|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T, M_1) = \prod_{n=1}^{N}\prod_{d=1}^{D} (0.5)^{x_d^{(n)}} (0.5)^{1-x_d^{(n)}}$$
+\item[] When all D components are generated from a Bernoulli distribution with $p_d = 0.5$, we have the likelihood function for model $M_1$:
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T, M_1) = \prod_{n=1}^{N}\prod_{d=1}^{D} (0.5)^{x_d^{(n)}} (0.5)^{1-x_d^{(n)}}$$
+Knowing that either $x_d^{(n)}$ or $1-x_d^{(n)}$ will be 1 and the other zero, we can simplify $(0.5)^{x_d^{(n)}} (1-0.5)^{1-{x_d}^{(n)}}$ to $0.5$:
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T, M_1) = \prod_{n=1}^{N} \prod_{d=1}^D (0.5)$$
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(1)}}=[0.5, 0.5,...,0.5]^T, M_1) = 0.5^{N\cdot D}$$
 When all D components are generated from Bernoulli distributions with unknown, but identical, $p_d$, we have the likelihood function for model $M_2$:
-$$P(\textbf{x}^{(n)}|\textbf{p}^{(2)}}=[p_d, p_d, ..., p_d]^T, M_2) = \prod_{n=1}^{N}\prod_{d'=1}^{D} p_d^{x_{d'}^{(n)}} (1-p_d)^{1-x_{d'}^{(n)}}$$
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(2)}}=[p_d, p_d, ..., p_d]^T, M_2) = \prod_{n=1}^{N}\prod_{d'=1}^{D} p_d^{x_{d'}^{(n)}} (1-p_d)^{1-x_{d'}^{(n)}}$$
 When each component is Bernoulli distributed with separate, unknown $p_d$, we have the likelihood function for model $M_3$:
-$$P(\textbf{x}^{(n)}|\textbf{p}^{(3)}}=[p_1, p_2, ..., p_D]^T, M_3) = \prod_{n=1}^{N}\prod_{d=1}^{D} p_d^{x_d^{(n)}} (1-p_d)^{1-x_d^{(n)}}$$
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(3)}}=[p_1, p_2, ..., p_D]^T, M_3) = \prod_{n=1}^{N}\prod_{d=1}^{D} p_d^{x_d^{(n)}} (1-p_d)^{1-x_d^{(n)}}$$
 For each model $M_i$, we can marginalise out $\textbf{p}^{(i)}}$ to get $P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)$:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|p_d, M_i)P(p_d|M_i) dp_1...dp_D$$
-where $d=1,...,D$ and $ \{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set.
-
-Given that the prior of any unknown probabilities is uniform, i.e. $P(p_d | M_i) = 1$. We can simplify:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|p_d, M_i) dp_1...dp_D$$
-For $M_1$, we have that all pixels have probability 0.5:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = \int_0^1...\int_0^1 \prod_{n=1}^{N} \prod_{d=1}^{D} (0.5)^{x_d^{(n)}} (1-0.5)^{1-{x_d}^{(n)}} d\theta_1...d\theta_D$$
-We can remove the integrals and knowing that either $x_d^{(n)}$ or $1-x_d^{(n)}$ will be 1 and the other zero, we can simplify $(0.5)^{x_d^{(n)}} (1-0.5)^{1-{x_d}^{(n)}}$ to $0.5$:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = \prod_{n=1}^{N} \prod_{d=1}^D (0.5)$$
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(i)}, M_i)P(\textbf{p}^{(i)}|M_i) dp_1...dp_D$$
+Given that the prior of any unknown probabilities is uniform, i.e. $P(\textbf{p}^{(i)} | M_i) = 1$. We can simplify:
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\textbf{p}^{(i)}, M_i) dp_1...dp_D$$
+For $M_1$:
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = \int_0^1...\int_0^1 0.5^{N\cdot D} d\theta_1...d\theta_D$$
+We can remove the integrals:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = (0.5)^{N\cdot D}$$
 For $M_2$, we have that all pixels share some probability $p_d$ so we only need to integrate over a single variable $p_d$:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1 \prod_{n=1}^{N} \prod_{d'=1}^D p_d^{x_{d'}^{(n)}} (1-p_d)^{1-{x_{d'}}^{(n)}} dp_d$$
@@ -234,25 +233,26 @@ Rewriting:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1  (p_d)^{K} (1- p_{d'=1})^{N\cdot D-K} d p_d$$
 where $K =\sum_{n=1}^{N} \sum_{d'=1}^D x_{d'}^{(n)}$.
 
-This integral is the beta function:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \frac{K! (N\cdot D-k)!}{(N\cdot D+1)!}$$
+\item[]This integral is the beta function:
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \frac{K! (N\cdot D-K)!}{(N\cdot D+1)!}$$
 For $M_3$, we need an integral for each $p_d$:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \int_0^1 ... \int_0^1 \prod_{n=1}^{N} \prod_{d=1}^D  p_d^{x_d^{(n)}} (1- p_d)^{1-{x_d}^{(n)}} d p_1 ... d p_D$$
 We can separate the integrals to only contain the relevant $p_d$:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \Bigg( \int_0^1 \prod_{n=1}^{N}   p_d^{x_d^{(n)}} (1- p_d)^{1-{x_d}^{(n)}} d p_d \Bigg)$$
 Changing the products to sums:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \Bigg( \int_0^1   p_d^{\sum_{n=1}^{N} x_d^{(n)}} (1- p_d)^{\sum_{n=1}^{N} 1-{x_d}^{(j)}} d p_d \Bigg)$$
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \Bigg( \int_0^1   p_d^{\sum_{n=1}^{N} x_d^{(n)}} (1- p_d)^{\sum_{n=1}^{N} 1-{x_d}^{(n)}} d p_d \Bigg)$$
 In this case, we have the product of integrals where each evaluates to a beta function:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \frac{K_d! (N-K_d)!}{(N+1)!}$$
 where $K_d = \sum_{n=1}^{N} x_d^{(n}$.
 
-The posterior probability of a model $M_i$ can be expressed:
+\item[]The posterior probability of a model $M_i$ can be expressed:
 $$P(M_i |  \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}{P( \{\textbf{x}^{(n)}\}_{n=1}^{N})}$$
 We only have three models, so in this case the normalisation $P(\{\textbf{x}^{(n)}\}_{n=1}^{N})$ can be expressed as a sum:
 $$P(M_i| \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}{\sum_{i\in \{1,2,3\}} P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}$$
 Given that $P(M_i) = \frac{1}{3}$ for all $i \in \{1,2,3\}$:
 $$P(M_i| \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)}{\sum_{i\in \{1,2,3\}} P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)}$$
-Calculating the posterior probabilities of each of the three models having generated the data in binarydigits.txt using python, we can show the values in the Table $\ref{table2}$:
+\newpage
+Calculating the posterior probabilities of each of the three models having generated the data in binarydigits.txt using Python, we can show the values in the Table $\ref{table2}$.
 
 \begin{table}[h]
 \begin{center}
@@ -268,7 +268,7 @@ Calculating the posterior probabilities of each of the three models having gener
 \label{table2}
 \end{table}
 
-We can see that for models specified to have the same parameter value for all pixels like $M_1$ is very unlikely with the given data set. This makes sense because it is specifying models where the image is essentially blank (a uniform shade), which is not reflective of our digit images. Moreover, $M_1$ specifies a specific value of 0.5 for all the parameters whereas $M_2$ specifies any value for all the parameters as long as it's the same. So the model $M_1$ is a subset of the models specified in $M_2$ and we can see this reflected in our probabilities when $P(M_2|\{\textbf{x}^{(n)}\}_{n=1}^{N}) > P(M_1|\{\textbf{x}^{(n)}\}_{n=1}^{N})$.
+We can see that for models specified to have the same parameter value for all pixels, like $M_1$, is very unlikely with the given data set. This makes sense because it is specifying models where the image is essentially blank (a uniform shade), which is not reflective of our digit images. Moreover, $M_1$ specifies a specific value of 0.5 for all the parameters whereas $M_2$ specifies any value for all the parameters as long as it's the same. So the model $M_1$ is just one possible model specified in $M_2$ and we can see this reflected in our probabilities when $P(M_2|\{\textbf{x}^{(n)}\}_{n=1}^{N}) > P(M_1|\{\textbf{x}^{(n)}\}_{n=1}^{N})$.
 
 \newpage
 The Python code for calculating the posterior probabilities of the three models:
@@ -287,12 +287,12 @@ The Python code for calculating the posterior probabilities of the three models:
 %model, introducing a discrete hidden variable $s(n) \in \{1, . . . , K \}$ where $P (s(n) = k|\pi) = \pi_k$.
 
 \item[(a)] The likelihood for a model consisting of a mixture of K multivariate Bernoulli distributions can be expressed as the product across $N$ data points:
-$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \prod_{i=1}^{N}P(x_i|\theta)$$
-where $\{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set with $\textbf{x}^{(n)} \in \mathbb{R}^{D \times 1}$ and $\theta = \{\pi, \mathbf{P}\}$, $\pi = [\pi_1, . . . , \pi_K] \in \mathbb{R}^{K \times 1}$ our mixing proportions $(0 \leq \pi_k \leq 1; \sum_k \pi_k = 1)$ and $\mathbf{P} \in \mathbb{R}^{D \times K}$ the K Bernoulli parameter vectors with elements $p_{kd}$ denoting the probability that pixel d takes value 1 under mixture component k. We also assume the images are iid and that the pixels are independent of each other within each component distribution.
+$$P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \prod_{i=1}^{N}P(\textbf{x}^{(n)}|\theta)$$
+where $\{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set with $\textbf{x}^{(n)} \in \mathbb{R}^{D \times 1}$ and $\theta = \{\pi, \mathbf{P}\}$ are our parameters, $\pi = [\pi_1, . . . , \pi_K] \in \mathbb{R}^{K \times 1}$ our K mixing proportions $(0 \leq \pi_k \leq 1; \sum_k \pi_k = 1)$ and $\mathbf{P} \in \mathbb{R}^{D \times K}$ the K Bernoulli parameter vectors with elements $p_{kd}$ denoting the probability that pixel d takes value 1 given mixture component k. We also assume the images are iid and that the pixels are independent of each other within each component distribution.
 
 For each $P(\textbf{x}^{(n)}|\theta)$:
-$$P(\textbf{x}^{(n)}|\theta) = \sum_{k=1}^{K} \pi_k \prod_{d=1}^D (p_{kd})^{\textbf{x}^{(n)}_{d}} (1-p_{kd})^{1-\textbf{x}^{(n)}_{d}}$$
-The log-likelihood $\mathcal{L}(\textbf{x}^{(n)}|\theta)$ can be expressed in matrix form:
+$$P(\textbf{x}^{(n)}|\theta) = \sum_{k=1}^{K} \pi_k \prod_{d=1}^D (p_{kd})^{x^{(n)}_{d}} (1-p_{kd})^{1-x^{(n)}_{d}}$$
+The log-likelihood $\mathcal{L}(\textbf{x}^{(n)}|\theta)$ can be expressed in vector form:
 $$\mathcal{L}(\textbf{x}^{(n)}|\theta) = \log \sum_{k=1}^{K}  \pi_k \exp\bigg(\textbf{x}^{(n)}\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})\log(1-\mathbf{P}_{k})\bigg) $$
 which can be further vectorised using Python scipy's $logsumexp$ operation.
 
@@ -303,37 +303,37 @@ $$\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \sum_{i=1}^{N} \Bigg( \lo
 $$P(A|B) \propto P(B|A)P(A)$$
 Thus,
 $$P(s^{(n)} = k|\textbf{x}^{(n)}, \pi, \mathbf{P}) \propto  P(\textbf{x}^{(n)} | s^{(n)} = k, \pi, \mathbf{P}) P(s^{(n)} = k|\pi, \mathbf{P})$$
-where $s^{(n)} \in \{1,...,K\}$ a discrete hidden variable with $P(s^{(n)} = k|\textbf{x}^{(n)}, \pi) = \pi_k$. Note that $P(s^{(n)} = k|\textbf{x}^{(n)} , \pi) = P(s^{(n)} = k|\textbf{x}^{(n)} , \pi, \mathbf{P})$ as $s^{(n)$ isn't dependent on $\mathbf{P}$.
+where $s^{(n)} \in \{1,...,K\}$ a discrete hidden variable with $P(s^{(n)} = k|\textbf{x}^{(n)}, \pi) = \pi_k$. Note that $P(s^{(n)} = k|\pi, \mathbf{P}) = P(s^{(n)} = k| \pi)$ as $s^{(n)$ isn't dependent on $\mathbf{P}$.
 
-Let $P(s^{(n)} = k|\textbf{x}^{(n)}, \pi, \mathbf{P}) \propto P(s^{(n)}$ be the unnormalised responsibility $\tilde{r}_{nk}$. Using the mixture for component $k$, $\pi_k$ and the likelihood function of component $k$:
-$$\tilde{r}_{nk} = \pi_k \prod_{d=1}^D (p_{kd})^{\textbf{x}^{(n)}_{d}} (1-p_{kd})^{1-\textbf{x}^{(n)}_{d}}$$
+Let $\tilde{r}_{nk}$ be the unnormalised responsibility $ P(\textbf{x}^{(n)} | s^{(n)} = k, \pi, \mathbf{P}) P(s^{(n)} = k|\pi, \mathbf{P})$. Using the mixture for component $k$, $\pi_k$ and the likelihood function of component $k$:
+$$\tilde{r}_{nk} = \pi_k \prod_{d=1}^D (p_{kd})^{x^{(n)}_{d}} (1-p_{kd})^{1-x^{(n)}_{d}}$$
 Normalising across the components:
 $$r_{nk} = \frac{\tilde{r}_{nk}}{\sum_{j=1}^K\tilde{r}_{nj}}$$
 we have calculated $P(s^{(n)} = k|\textbf{x}^{(n)}, \pi, \mathbf{P})$ for the E step of an EM algorithm.
 
 Moreover,
-$$ \log \tilde{r}_{nk} = \log \pi_k + \sum_{d=1}^D \bigg( \textbf{x}^{(n)}_{d}\log(p_{kd}) + (1-\textbf{x}^{(n)}_{d}) \log(1-\exp(\log(p_{kd}))) \bigg)$$
+$$ \log \tilde{r}_{nk} = \log \pi_k + \sum_{d=1}^D \bigg( x^{(n)}_{d}\log(p_{kd}) + (1-x^{(n)}_{d}) \log(1-\exp(\log(p_{kd}))) \bigg)$$
 and
 $$\log r_{nk} = \log\tilde{r}_{nk} - \log\sum_{j=1}^K\exp(\log\tilde{r}_{nj})$$
-which can be vectorised as $\log \textbf{r}_{n}$ calculated with $\log\pi$ and $\log \textbf{P}$ using Python scipy's $logsumexp$ operation.
+which can be vectorised as $\log \textbf{r}$ calculated with $\log\pi$ and $\log \textbf{P}$ using Python scipy's $logsumexp$ operation.
 
 \item[(c)] We know that the expectation log joint can be expressed:
 $$\Bigg\langle \sum_n \log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P})\Bigg\rangle_{q(\{s^{(n)}\})} = \sum_{n=1}^N q(s^{(n)}) \log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P})$$
-Let this quantity be $E$. Each term of $E$ can be expressed:
-$$q(s^{(n)}) = \textbf{r}_{n}$$
+Let this quantity be $E$. For each term of $E$:
+$$q(s^{(n)}) = \textbf{r}_{n}^T$$
 and
 $$\log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P}) = \log[P(\textbf{x}^{(n)}| s^{(n)}, \pi, \mathbf{P})P(s^{(n)}| \pi, \mathbf{P})]$$
 which is the vectorised version of $\log\tilde{r}_{nk}$ from part (b) so:
 $$\log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P}) =\log(\pi)+\log(\mathbf{P})^T \textbf{x}^{(n)} + \log(1-\mathbf{P})^T(1-\textbf{x}^{(n)})$$
 Combining:
 $$ E = \sum_n \textbf{r}_{n}^T[\log(\pi)+\log(\mathbf{P})^T \textbf{x}^{(n)} + \log(1-\mathbf{P})^T(1-\textbf{x}^{(n)})]$$
-To maximise with respect to $\pi$ and $\mathbf{P}$ for the M step, we want to take the derivative, set to zero, and solve for $\hat\pi$ and $\hat P$.
+To maximise with respect to $\pi$ and $\mathbf{P}$ for the M step, we want to take the derivative, set to zero, and solve for $\hat\pi$ and $\hat \textbf{P}$.
 
 For the $k^{th}$ element of $\pi$:
 $$\frac{\partial E}{\partial \pi_k} = \sum_n r_{nk} \frac{1}{\pi_k}$$
-The second derivative:
-$$\frac{\partial E}{(\partial \pi_k)^2} = \sum_n r_{nk} \frac{-1}{(\pi_k)^2}$$
-is always negative because $r_{nk}\geq 0$, $\sum_{n}r_{nk}=1$, \pi_{k}\geq 0$, and $\sum_{n}\pi_{k}=1$, ensuring a maximum in the next step.
+%The second derivative:
+%$$\frac{\partial E}{(\partial \pi_k)^2} = \sum_n r_{nk} \frac{-1}{(\pi_k)^2}$$
+%is always negative because $r_{nk}\geq 0$, $\sum_{n}r_{nk}=1$, \pi_{k}\geq 0$, and $\sum_{n}\pi_{k}=1$, ensuring a maximum in the next step.
 
 We can calculate the maximiser with:
 $$\frac{\partial E}{\partial \pi_k} + \lambda = 0$$
@@ -342,21 +342,22 @@ where $\lambda$ is a Lagrange multiplier ensuring that the mixing proportions su
 Thus,
 $$\hat \pi_k = \frac{\sum_{n}r_{nk}}{N}$$
 For the $dk^{th}$ element of $\mathbf{P}$:
-$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}\frac{\partial}{\partial \mathbf{P}_{dk}}[\textbf{x}^{(n)}_{d}\log \mathbf{P}_{dk}+(1-\textbf{x}^{(n)}_{d}) \log(1-\mathbf{P}_{dk})]$$
+$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}\frac{\partial}{\partial \mathbf{P}_{dk}}[x^{(n)}_{d}\log \mathbf{P}_{dk}+(1-x^{(n)}_{d}) \log(1-\mathbf{P}_{dk})]$$
 Simplifying:
-$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}(\frac{\textbf{x}^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-\textbf{x}^{(n)}_{d}}{1-\mathbf{P}_{dk}})$$
-Similar to Question 1, we can see that taking second derivative, the term in the brackets will always be less than zero and with $r_{nk}\geq 0$ and $\sum_{n}r_{nk}=1$, the second derivative will always be negative. This ensures that we have a maximum in the next step.
+$$\frac{\partial E}{\partial \mathbf{P}_{dk}} = \sum_n r_{nk}(\frac{x^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-x^{(n)}_{d}}{1-\mathbf{P}_{dk}})$$
+%Similar to Question 1, we can see that taking second derivative, the term in the brackets will always be less than zero and with $r_{nk}\geq 0$ and $\sum_{n}r_{nk}=1$, the second derivative will always be negative. This ensures that we have a maximum in the next step.
 
 Setting the derivative to zero:
-$$\frac{\sum_n  \textbf{x}^{(n)}_{d}r_{nk}}{ \mathbf{P}_{dk}}-\frac{\sum_n r_{nk}-\sum_n  \textbf{x}^{(n)}_{d}r_{nk}}{1-\mathbf{P}_{dk}} = 0$$
+$$\frac{\sum_n  x^{(n)}_{d}r_{nk}}{\hat{\mathbf{P}}_{dk}}-\frac{\sum_n r_{nk}-\sum_n  x^{(n)}_{d}r_{nk}}{1-\hat{\mathbf{P}}_{dk}} = 0$$
 Solving for $\hat{\mathbf{P}}_{dk}$:
-$$\hat{\mathbf{P}}_{dk}\sum_n r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n \textbf{x}^{(n)}_{d}r_{nk} = \sum_n  \textbf{x}^{(n)}_{d}r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n  \textbf{x}^{(n)}_{d}r_{nk}$$
+$$\hat{\mathbf{P}}_{dk}\sum_n r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n x^{(n)}_{d}r_{nk} = \sum_n  x^{(n)}_{d}r_{nk}-\hat{\mathbf{P}}_{dk}\sum_n  x^{(n)}_{d}r_{nk}$$
 Thus,
-$$\hat{\mathbf{P}}_{dk} = \frac{\sum_n \textbf{x}^{(n)}_{d}r_{nk}}{\sum_n r_{nk}}$$
+$$\hat{\mathbf{P}}_{dk} = \frac{\sum_n x^{(n)}_{d}r_{nk}}{\sum_n r_{nk}}$$
 We have the maximizing parameters for the expected log-joint
 $$\arg \max_{\pi, \mathbf{P}} \Bigg\langle \sum_n \log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P})\Bigg\rangle_{q(\{s^{(n)}\})}$$
 thus obtaining an iterative update for the parameters $\pi$ and $\mathbf{P}$ in the M-step of EM.
-For numerical stability, we can compute the maximisation step for the MAP of $\mathbf{P}$,$\hat{\mathbf{P}}_{dk}^{MAP}$ by solving:
+
+\item[]For numerical stability, we can compute the maximisation step for the MAP of $\mathbf{P}$, by solving for $\hat{\mathbf{P}}_{dk}^{MAP}$ with:
 $$\frac{\partial E'}{\partial \mathbf{P}_{dk}} = 0$$
 where
 $$E' = \sum_{n=1}^N q(s^{(n)}) \log P(\mathbf{P} | \pi, \textbf{x}^{(n)}, s^{(n)})$$
@@ -369,16 +370,16 @@ $$\frac{\partial \log P(\mathbf{P})}{\partial \mathbf{P}_{dk}} = \frac{(\alpha-1
 Thus, the derivative can be expressed as:
 $$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \sum_n \Bigg(r_{nk} \bigg(\frac{\partial \log P( \textbf{x}^{(n)}, s^{(n)} | \pi, \mathbf{P} )}{\partial \mathbf{P}_{dk}} + \frac{\partial \log P(\mathbf{P})}{\partial \mathbf{P}_{dk}} \bigg) \Bigg)$$
 Substituting the appropriate expressions:
-$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \sum_n \Bigg(r_{nk} \bigg(\frac{\textbf{x}^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-\textbf{x}^{(n)}_{d}}{1-\mathbf{P}_{dk}} + \frac{(\alpha-1)}{\mathbf{P}_{dk}} -  \frac{(\beta-1)}{1-\mathbf{P}_{dk}} \bigg) \Bigg)$$
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \sum_n \Bigg(r_{nk} \bigg(\frac{x^{(n)}_{d}}{ \mathbf{P}_{dk}}-\frac{1-x^{(n)}_{d}}{1-\mathbf{P}_{dk}} + \frac{(\alpha-1)}{\mathbf{P}_{dk}} -  \frac{(\beta-1)}{1-\mathbf{P}_{dk}} \bigg) \Bigg)$$
 Simplifying:
-$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \frac{\sum_n r_{nk}(\alpha-1 + \textbf{x}^{(n)}_{d})}{ \mathbf{P}_{dk}}-\frac{\sum_n r_{nk}(\beta-\textbf{x}^{(n)}_{d})}{1-\mathbf{P}_{dk}}$$
-For a maximum, we see that we need $\alpha > \textbf{x}^{(n)}_{d}-1$  or $\beta < \textbf{x}^{(n)}_{d}$, both of which are satisfied knowing that $\alpha > 0$ and $\beta > 0$.
+$$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \frac{\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})}{ \mathbf{P}_{dk}}-\frac{\sum_n r_{nk}(\beta-x^{(n)}_{d})}{1-\mathbf{P}_{dk}}$$
+%For a maximum, we see that we need $\alpha > x^{(n)}_{d}-1$  or $\beta < x^{(n)}_{d}$, both of which are satisfied knowing that $\alpha > 0$ and $\beta > 0$.
 Setting $\frac{\partial E'}{\partial \mathbf{P}_{dk}}=0$ we can calculate $\hat{\mathbf{P}}_{dk}^{MAP}$:
-$$\sum_n r_{nk}(\alpha-1 + \textbf{x}^{(n)}_{d})} - \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\alpha-1 + \textbf{x}^{(n)}_{d})} = \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\beta-\textbf{x}^{(n)}_{d})$$
-$$ \hat{\mathbf{P}}_{dk}^{MAP} = \frac{\sum_n r_{nk}(\textbf{x}^{(n)}_{d}+\alpha-1)}{(\alpha+\beta-1)( \sum_n r_{nk})}$$
+$$\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} - \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} = \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\beta-x^{(n)}_{d})$$
+$$ \hat{\mathbf{P}}_{dk}^{MAP} = \frac{\sum_n r_{nk}(x^{(n)}_{d}+\alpha-1)}{(\alpha+\beta-1)( \sum_n r_{nk})}$$
 As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ \hat{\mathbf{P}}_{dk}^{MLE}$ as we would expect.
 \newpage
-\item[(d)] Plotting the posterior likelihood as a function of the iteration number:
+\item[(d)] Plotting the posterior likelihood as a function of the iteration number for different k values:
 
 \begin{figure}[h]
 \centering
@@ -387,11 +388,11 @@ As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ 
 \label{fig:3d-log-like}
 \end{figure}
 
-where $epsilon$ is the stopping condition for the posterior posterior converges.
+where $epsilon$ is the stopping condition for when the log posterior converges sufficiently.
 
 \newpage
 
-Displaying the parameters found for $K$ in $\{2, 3, 4, 7, 10\}$:
+Displaying the parameters found for $K \in \{2, 3, 4, 7, 10\}$:
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.3]{outputs/q3/q3e-0-initialised-p}
@@ -439,11 +440,11 @@ The Python code for the EM algorithm:
 \end{figure}
 
 
-For smaller k, we can visually see that we obtain very similar solutions (a 7 and a 0 for $k=2$). However for higher K, we see that this may not always be the case. For Trial 2 of $k=10$, we have three 5's whereas in Trial 4 we have two 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
+For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$). For $k=3$, we get one each of zero, seven, and five, but in different orderings for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have three 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
 
 \newpage
 
-Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_2$ of trial 2). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_2$ and $\pi_9$ are very similar in trial 2) This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, the responsibility vector is displayed). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some clusters are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see four or five clusters with TSNE.
+Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_3$ of trial 2). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_2$ and $\pi_3$ are very similar in trial 2) This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, just the responsibility vector is plotted because it is two dimensional). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some mixtures are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see three to five clusters with TSNE.
 
 \begin{figure}[h]
   \centering
@@ -472,18 +473,10 @@ Moreover, looking at the responsibilities of each mixture component, we can see 
   \label{fig:3e-tsne-3}
 \end{figure}
 
-Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balancing maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure non-zero mixing components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.
+Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure more even mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.
 
 \end{enumerate}
 
-[BONUS] Express the log-likelihoods obtained in bits and relate these numbers to the length
-of the naive encoding of these binary data. How does your number compare to gzip (or
-another compression algorithm)? Why the difference? [5 marks]
-
-
- [BONUS] Consider the total cost of encoding both the model parameters and the data given
-the model. How does this total cost compare to gzip (or similar)? How does it depend on
-K ? What might this tell you? [5 marks]
 
 
 \newpage
@@ -507,17 +500,17 @@ K ? What might this tell you? [5 marks]
 %$$p(s_1s_2\cdots s_n) = p(s_1)\prod_{i=2}^{n}p(s_i|s_{i-1})$$
 
 \item[(a)] The formulae for the ML estimates of $P(s_i = \alpha |s_{i-1} = \beta) = \Psi(\alpha, \beta)$:
-$$\Psi(\alpha, \beta) = \frac{N_{s_i, s_{i-1}}}{N_{s_{i-1}}}$$
-where $N_{s_i, s_{i-1}}$ is the count of the number of occurrences of the pair $(s_i, s_{i-1})$, where $s__{i-1}$ is followed by $s_{i}$ and $N_{s__{i-1}}$ is the number of occurrences of $s_{i-1}$.
+$$\Psi(\alpha, \beta) = \frac{N_{\alpha, \beta}}{N_{\beta}}$$
+where $N_{\alpha, \beta}$ is the count of the number of occurrences of the pair $(\alpha, \beta)$, where $\beta$ is followed by $s\alpha$ in the text and $N_{\beta}$ is the number of occurrences of $\beta$. Moreover to ensure ergodicity, a one was added to each $N_{\alpha, \beta}$. This was also taken into account for the normaliser $N_{\beta}$.
 
 Moreover, the stationary distribution $\phi$ can be calculated using the power method:
 \begin{enumerate}
-  \item[(i)] Initialise any $\phi_0 \in \mathbb{R}^{53 \times 1}$
-  \item[(ii)] Repeat $\phi_{i+1} = \Psi \phi_{i}$
-  \item[(iii)] Terminate when $\phi_{i+1} - \phi_{i} < \epsilon$
+  \item[(i)] Initialise any $\phi^{(0)} \in \mathbb{R}^{53 \times 1}$ and $\sum_i \phi^{(0)}_i = 1$
+  \item[(ii)] Repeat $\phi^{(i+1)} = \Psi \phi^{(i)}$
+  \item[(iii)] Terminate when $\phi^{(i+1) - \phi^{(i)} < \epsilon$
 \end{enumerate}
 
-where $\Psi \in \mathbf{R}^{53\times53}$ containing the transition probabilities, $\Psi_{i, j} = P(\alpha_j | \alpha_i)$ where $\alpha_i$ is the $i^{th}$ symbol and $\alpha_j$ is the $j^{th}$ symbol, and $\epsilon$ is some small number indicating sufficient convergence of the distribution to be considered stationary. The function $\phi(\gamma)$ is simply the index of $\gamma$ in the vector $\phi$.
+where $\Psi \in \mathbf{R}^{53\times53}$ containing the transition probabilities, $\Psi_{i, j} = P(s_j | s_i)$ where $s_i$ is the $i^{th}$ symbol and $s_j$ is the $j^{th}$ symbol, and $\epsilon$ is some small number indicating sufficient convergence of the distribution to be considered stationary. The function $\phi(\gamma)$ is simply the index of symbol $\gamma$ in the vector $\phi$.
 
 %Let $p(\textbf{s}_i,\textbf{s}_{i-1})$ be the probability of the pair of symbols $\textbf{s}_i$ and $\textbf{s}_{i-1}$ occurring together in the text ($\textbf{s}_{i-1}$ followed by $\textbf{s}_i$ where order matters).
 %We can model $p(\textbf{s}_i,\textbf{s}_{i-1})$ as a multinomial distribution with $N=1$ and $D=53^2$:
@@ -629,7 +622,7 @@ The invariant distribution $\phi$:
 \item[(b)] The latent variables $\sigma(s)$ for different symbols $s$ are not independent.
 This is because by choosing an encoding for one symbol $e = \sigma(s)$, the encoding for a second symbol $\sigma(s')$ cannot be $e$.
 We have 53 symbols but only 52 degrees of freedom, because once we have defined the encoding for 52 symbols, the encoding for the $53^{rd}$ symbol cannot be chosen.
-Thus, there exists a dependence between the symbols for a given $\sigma$.
+Thus, there exists a dependence between $\sigma(s)$ for different symbols $s$.
 
 The joint probability of the encrypted text $e_1 e_2 \cdots e_n$ given $\sigma$:
 
@@ -664,7 +657,7 @@ The expression for $P(\mathcal{D}|\sigma)$ is $P(e_1, e_2,...,e_n|\sigma)$ descr
 
 \begin{center}
 %\begin {table}[h]
-\scalebox{0.4} {\begin{tabular}{c|l}%
+\scalebox{0.4} {\begin{tabular}{c|c}%
  \bfseries \textbf{MH Iteration} & \textbf{Current Decryption}% specify table head
 \csvreader[head to column names,
 /csv/separator=pipe,
@@ -688,8 +681,21 @@ The corresponding $\sigma$:
 }
 \end{center}
 
+\newpage
+To help with chain initialisation, 10000 different $\sigma$'s were first randomly and independently sampled. The $\sigma$ with the best log-likelihood was chosen as the starting point for the MH chain and the algorithm was then run for 10000 iterations. Moreover, ten different trials of this was performed, where the trial with the best log-likelihood was displayed. The decrypted message for each of the ten trials:
 
-To help with chain initialisation, 10000 different $\sigma$'s were randomly and independently sampled. The $\sigma$ providing the best log-likelihood was chosen as the starting point for the MH chain and algorithm was then run for 10000 iterations. Moreover, ten different trials were performed, where the trial with the best log-likelihood is displayed.
+\begin{center}
+%\begin {table}[h]
+\scalebox{0.4} {\begin{tabular}{c|c}%
+ \bfseries \textbf{Trial} & \textbf{Decryption}% specify table head
+\csvreader[head to column names,
+/csv/separator=pipe,
+]{outputs/q5/q5d-trials.csv}{}% use head of csv as column names
+{\\\hline\csvcoli&\csvcolii}% specify your coloumns here
+\end{tabular}
+}
+%\end{table}
+\end{center}
 
 \newpage
 
@@ -701,22 +707,22 @@ The Python code for the MH sampler:
 
 \newpage
 
-\item[(e)] When some values of $\Psi(\alpha, \beta) = 0$, this affects the ergodicity of the chain. An ergodic chain is one that is irreducible (i.e. all possible transitions between symbols have probability greater than zero). If $\Psi(\alpha, \beta) = 0$, this means that there is zero probability that $\beta$ will transition to $\alpha$, breaking our definition. To restore ergodicity, we can add a small transition probability between all symbols of the chain. This essentially acts as a prior, stating that the probability of a symbol to transition to any other symbol (including itself) should never be zero.
+\item[(e)] When some values of $\Psi(\alpha, \beta) = 0$, this affects the ergodicity of the chain. An ergodic chain is one that is irreducible (i.e. all possible transitions between symbols, including to itself, have probability greater than zero). If $\Psi(\alpha, \beta) = 0$, this means that there is zero probability that $\beta$ will transition to $\alpha$, breaking our definition. To restore ergodicity, we can add a small transition probability between all symbols of the chain. This essentially acts as a prior, stating that the probability of a symbol to transition to any other symbol (including itself) should never be zero.
 
 
-\item[(f)] Analyse this approach to decoding. For instance, would symbol probabilities alone (rather than transitions) be sufficient? If we used a second order Markov chain for English text, what problems might we encounter? Will it work if the encryption scheme allows two symbols to be mapped to the same encrypted value? Would it work for Chinese with $>$ 10000 symbols? [13 marks]
-
-If we were to use symbol probabilities alone for decoding, the joint probability would be:
+\item[(f)] If we were to use symbol probabilities alone for decoding, the joint probability would be:
 $$P(e_1, e_2,...,e_n|\sigma) = \prod_{i=1}^n P(\sigma^{-1}(e_i))$$
-the product of the likelihoods of the decoded letters. In this case, the optimal decoding would simply replace the most frequent symbols in the encrypted message with the most frequent symbols in the training text. This is much more difficult because each letter is assumed to be independent of its neighbours. For a first order Markov chairn, we exploit the structure of language by considering pairs of letters. Assuming that as the training text size approaches infinity and the size of the encrypted message also approaches infinity, that the two will have the same symbol frequency and that the probability of each symbol is unique, (i.e. two different decodings can't have the same likelihood), then using symbol probabilities alone should theoretically work. However, in practise we would unlikely to be able to make these assumptions about symbol frequencies from the size of our training set and encrypted message.
+the product of the likelihoods of the decoded letters. In this case, the optimal decoding would simply replace the most frequent symbols in the encrypted message with the most frequent symbols in the training text. This decoding approach is much more difficult because each letter is assumed to be independent of its neighbours. For a first order Markov chain, we exploit the structure of language by considering pairs of letters. Assuming that as the training text size approaches infinity and the size of the encrypted message also approaches infinity, that the two will have the same symbol frequency and that the probability of each symbol is unique, (i.e. two different symbols can't have the same frequency), then using symbol probabilities alone should theoretically work by matching symbol probabilities. However, in practise it would be unlikely to be able to make these assumptions about symbol frequencies, especially with the finite size of our training set and encrypted message.
 
-A second-order chain should also work in theory. However, this approach is probably practically  more difficult for finding a suitable decoding. This is because our transition matrix would contain $N^3$, where $N$ is the number of symbols, to account for all possible second order transitions. Our training text would need to increase quadratically to maintain the same ratio of possible transitions to example transitions (number of second order transitions in a text of length $N$ is $N-2$ and third order its $N-3$).
+A second-order chain should also work in theory. However, with this approach it is probably practically more difficult for finding a suitable decoding. This is because our transition tensor would contain $N^3$ elements, where $N$ is the number of symbols, to account for all possible second order transitions. Our training text would need to increase quadratically to maintain the same ratio of possible transitions to example transitions (number of first order transitions in a text of length $N$ is $N-1$ and second order its $N-2$). This can also introduce sparsity (as in small non-zero probabilities in many entries) in our transition matrix despite our ability to maintain ergodicity with small probabilities to prevent non-zero entries. However, the log-likelihood of many areas of $\sigma$ space might be very small or all just the same, when all the transition probabilities are just the offset probability (added to maintain ergodicity). Navigating this space will be much more difficult for the sampler as the space could be relatively flat.
 
 For an encryption scheme where two symbols map to the same encrypted value:
 $$\exists \alpha, \beta, \sigma(\alpha) = \sigma(\beta), \alpha \neq \beta$$
-this approach can become much more complicated. Our $\sigma^{-1}(e)$ is ill-defined, and therefore how we computing the joint probability of the encrypted text is no longer immediately clear. Moreover, generating proposal encodings is not as simple as swapping the encryption for two symbols. This is because we do not know which two symbols map to the same encrypted symbol and simply swapping would preserve the same collision mapping of the current encoding. Overall, many changes would need to be made to the approach to accommodate for these complications. It is not immediately obvious how current approach could work for this case.
+this approach can become much more complicated. Our $\sigma$ is no longer as easily inverted and therefore for each duplicate mapping, we would have to integrate out the probability for the two possible decrypted symbols when computing the log-likelihood. Moreover, generating proposal encodings is not as simple as swapping the encryption for two symbols. This is because we do not know which two symbols map to the same encrypted symbol and simply swapping would preserve the same collision mapping of the current encoding. Moreover, the number of proposal $\sigma'$'s will depend on how many duplicates exist in the current $\sigma$. Thus $S(\sigma \rightarrow \sigma')$ would no longer be symmetric, complicating the acceptance probability calculation as it would be dependent on the $\sigma$ and $\sigma'$. Overall, this approach could work but would require many changes to accommodate for these complications. Integrating out collision mappings in the log-likelihood, non-symmetric proposal probabilities, and a much larger $\sigma$ space because duplicates are allowed, means that it will take much longer for the sampler to find a reasonable $\sigma$.
 
-If we used this approach for Chinese with $\geq 10000$ symbols, we would be attempting to solve the same problem but with $N\geq10000$ instead of $N=53$. Similar to the second order Markov chain, although this is theoretically possible, it would require a transition matrix of size $\geq10000^2$ which is quite impractical. An alternative set up  could be with using Chinese phonetics, for which there are likely much fewer than $10000$, however this would require a mapping from a phonetic to an encrypted phonetic.
+%If we start at a unique mapping, there are ${53\choose2} + 52(53-M)$ proposal encodings that involve a single change, where ${53\choose2}$ are the number of possible swaps and $53(53-M)$ is the number of proposals for which we add one collision mapping, where $M$ is the number of unique symbols in the encrypted message. $52(53-M)$ where we can move the mapping to any one of $53-M$ encoded symbols $e$ that don't show up in the encrypted message and collide it with any one of the other $52$ other encoded symbols. If we start at a mapping with duplicates, there are $({53\choose2} - \tilde{C}) + \mathbb{I}(M<53-C)(52-2C)(53-M-C) + 52C$ where $\tilde{C}$ is the current number of duplicates in $\sigma$, $C$ is the current number of duplicates to encoded symbols seen in the encrypted text (duplicates to unseen encoded symbols are like placeholders in this case), and $\mathbb{I}$ is an indicator function. $({53}\choose{2} - \tilde{C})$ is the number of swaps possible, where we remove the swapping of collision mappings. $\mathbb{I}(M<53-C)(52-2C)(53-C)$ is the number of proposals where we can add another duplicate mapping. $\mathbb{I}(M<53-C)$ indicates whether more adding another duplicate is possible, $52-2C$ is number of symbols that aren't currently colliding to an encoded symbol seen in the encoded message and can be remapped to collide, and
+
+If we used this approach for Chinese with $\geq 10000$ symbols, we would be attempting to solve the same problem but with $N\geq10000$ instead of $N=53$. Similar to the second order Markov chain, although this is theoretically possible, it would require a transition matrix of size $\geq10000^2$ which is quite impractical and we'd run into similar problems as for second order Markov Chains. An alternative set up  could be with using Chinese phonetics, for which there are much fewer than $10000$, however this would require a mapping from a phonetic to an encrypted phonetic.
 
 \end{enumerate}
 \newpage
@@ -728,7 +734,7 @@ where $g(x, y)=0$ is an equivalent representation of the given constraint.
 
 We can therefore construct the optimisation problem:
 $$\min_{\textbf{x}} f(\textbf{x})$$
-such that $g(\textbf{x})=\textbf{0}$ and $\textbf{x} := [x, y]^T$.
+such that $g(\textbf{x})=0$ and $\textbf{x} := [x, y]^T$.
 
 We can calculate $\nabla f(\textbf{x})$:
 $$\nabla f(\textbf{x}) = [\frac{\partial}{\partial x} (x+2y), \frac{\partial}{\partial y} (x+2y)]^T$$
@@ -745,18 +751,17 @@ $$1+\lambda y = 0$$
 $$2+\lambda (2y+x)= 0$$
 $$y^2 + xy - 1 = 0$$
 Substituting $ y = \frac{-1}{\lambda}$ from the first equation into the second equation:
-$$2+\frac{-1}{\lambda}(2y+x) = 0$$
-$$\frac{-x}{y} = 0$$
-We see that $x=0$.
+$$2+\lambda(2(\frac{-1}{\lambda}) + x) = 0$$
+$$x = 0$$
 Solving for $y$ in our third equation with $x=0$:
 $$y^2-1=0$$
 We see that $y=\pm 1$ and from the first equation $\lambda\mp 1$.
 
-The local extrema are $(x=0, y=1)$ when our $\lambda=-1$ and $(x=0, y=-1)$ when our $\lambda=1$.
+The local extrema are $(x=0, y=1)$ when $\lambda=-1$ and $(x=0, y=-1)$ when $\lambda=1$.
 
 \item[(b)] _
 \begin{enumerate}
-             \item[(i)] Given that $g(a) = \ln(a)$, we want to transform this to the form $f(x,a)=0$:
+             \item[(i)] Given that $g(a) = \ln(a)$, we want to transform this to the form $f(x,a)=0$ where $x=g(a)$:
              $$x = \ln(a)$$
              $$\exp(x) - a = 0$$
              Thus,
@@ -767,10 +772,11 @@ The local extrema are $(x=0, y=1)$ when our $\lambda=-1$ and $(x=0, y=-1)$ when 
 
              We can calculate:
              $$f'(x) = \frac{\partial f(x, a)}{\partial x}= \exp(x)$$
-             Assuming we can evaluate $\exp(x)$, our update equation:
+             Assuming we can evaluate $\exp(x)$, our update equation is:
              $$x_{n+1} = x_{n} - \frac{\exp(x_n) - a}{\exp(x_n)}$$
              Simplifying:
              $$x_{n+1} = x_{n} + \frac{a}{\exp(x_n)} - 1$$
+             we have our update equation in Newton's algorithm for this problem.
 \end{enumerate}
 \end{enumerate}
 
@@ -781,25 +787,25 @@ The local extrema are $(x=0, y=1)$ when our $\lambda=-1$ and $(x=0, y=-1)$ when 
 $$\sup_{\{\textbf{x}\in \mathbb{R}^n\}} R_A(\textbf{x})$$
 where $R_A(\textbf{x}) = \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$, we want to show that a maximum is attained.
 
-To do this, we will show the above optimisation can be equivalently formulated:
-$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} R_A(\textbf{x})$$
+To do this, we will first show that the above optimisation can be equivalently formulated as:
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} R_A(\textbf{x})$$
 We begin by considering any $\textbf{w} \in \mathbb{R}^n$ and let $\textbf{x} = \frac{\textbf{w}}{\|\textbf{w}\|}$. Because $\|\textbf{x}\| = 1$ we can substitute:
-$$\sup_{\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n | \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\}} R_A(\textbf{x}) = \sup_{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} R_A(\textbf{x}) = \sup_{\bigg\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n \biggm| \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\bigg\}} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
 where $\|\textbf{x}\|^2 = \textbf{x}^T\textbf{x}$.
 
-The set $\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n | \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\}$ holds for all $\textbf{w} \in \mathbb{R}^n$ so we can rewrite:
-$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
+The set $\bigg\{\frac{\textbf{w}}{\|\textbf{w}\|}\in \mathbb{R}^n \biggm| \| \frac{\textbf{w}}{\|\textbf{w}\|}\|=1\bigg\}$ contains all $\textbf{w} \in \mathbb{R}^n$ so we can rewrite:
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} R_A(\textbf{x})=\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} \|\textbf{w}\|^2}{\|\textbf{w}\|^2 \textbf{w}^T\textbf{w}}$$
 We can simplify the expression:
-$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} }{\textbf{w}^T\textbf{w}}$$
-$$\sup_{\{\textbf{w}\in \mathbb{R}^n\}} R_A(\textbf{w})$$
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} R_A(\textbf{x})=\sup_{\{\textbf{w}\in \mathbb{R}^n\}} \frac{\textbf{w}^T\textbf{Aw} }{\textbf{w}^T\textbf{w}}$$
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} R_A(\textbf{x})=\sup_{\{\textbf{w}\in \mathbb{R}^n\}} R_A(\textbf{w})$$
 
 and recover our original optimisation problem by letting $\textbf{x}=\textbf{w}$, showing that it is equivalent to the supremum over the unit sphere. Assuming the set containing the unit sphere is compact, the extreme value theory of calculus states that $\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} R_A(\textbf{x})$ is attained so equivalently $\sup_{\{\textbf{x}\in \mathbb{R}^n\}} R_A(\textbf{x})$ is attained as required.
 
 \item[(b)] We can now reformulate the optimisation as:
-$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$$
-But because $\| \textbf{x}\|=1$, we can equivalently write:
-$$\sup_{\{\textbf{x}\in \mathbb{R}^n | \| \textbf{x}\|=1\}} \textbf{x}^T\textbf{Ax}}$$
-Thus, showing $\textbf{x}^T\textbf{Ax}} \leq \lambda_1$ will be equivalent to showing $R_A(\textbf{x}) \leq \lambda_1$ for $\|\textbf{x}\|=1$.
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$$
+Because $\| \textbf{x}\|=1$, we can equivalently write:
+$$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} \textbf{x}^T\textbf{Ax}}$$
+Thus, showing $R_A(\textbf{x}) \leq \lambda_1$ will be equivalent to showing $\textbf{x}^T\textbf{Ax}} \leq \lambda_1$ for $\|\textbf{x}\|=1$.
 We know that for all $\textbf{x} \in \mathbb{R}^n$:
 $$\textbf{x} = \sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i$$
 so we can write:
@@ -808,18 +814,18 @@ Given that $\xi_i$ are eigenvectors of $\textbf{A}$ corresponding to eigenvalues
 $$\textbf{x}^T\textbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\bigg(\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x}) \xi_i\bigg)$$
 Given that the eigenvectors $\xi_i$ form an orthonormal basis, we know that $\xi_i^T\xi_j = 0$ when $i\neq j$ and $\xi_i^T\xi_j = 1$ when $i=j$, so:
 $$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$$
-We know that $\|\textbf{x}\|^2 = 1$ so $\|\textbf{x}\|^2 = \sum_{j=1}^{n} x_i^2 = \sum_{j=1}^{n} (\xi_j \textbf{x})^2 = 1$. Thus the quantity $\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$ is simply a weighted average of $\lambda_i$'s and we can write:
+From our above reformulation with the unit sphere, we know that $\|\textbf{x}\|^2 = 1$ so $\|\textbf{x}\|^2 = \sum_{j=1}^{n} x_i^2 = \sum_{j=1}^{n} (\xi_j \textbf{x})^2 = 1$. Thus the quantity $\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$ is a weighted average of $\lambda_i$'s, which is always less than or equal to the largest $\lambda_i$ value so:
 $$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \lambda_1$$
 where $\lambda_1$ is the largest eigenvalue of eigenvalues $\lambda_i$. Therefore, $R_A(\textbf{x}) \leq \lambda_1$ as required.
 
-\item[(c)] Given that $\lambda_j < \lambda_1 \forall j > k$ and $\textbf{x} \in span\{\xi_{k+1}, ..., xi_{n}\}$, we can rewrite $\textbf{x}$:
+\item[(c)] Given that $\textbf{x} \in span\{\xi_{k+1}, ..., \xi_{n}\}$, we can rewrite $\textbf{x}$:
 $$\textbf{x} = \sum_{i=k+1}^n (\xi_i^T \textbf{x}) \xi_i$$
-From the same argument as (b) we can bound $\textbf{x}^T\textbf{Ax}}$:
+Using the same argument as in (b) we can bound $\textbf{x}^T\textbf{Ax}}$:
 $$\textbf{x}^T\textbf{Ax}} = \sum_{i=k+1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \max\{\lambda_{k+1}, ..., \lambda_n\}$$
 But given that the maximum eigenvalue $\lambda_1$ is not contained in $\{\lambda_{k+1}, ..., \lambda_n\}$:
 $$\max\{\lambda_{k+1}, ..., \lambda_n\} < \lambda_1$$
-and therefore,
-$$R_A(\textbf{x}) < \lambda_1$$
+and therefore
+$R_A(\textbf{x}) < \lambda_1$
 as required.
 
 

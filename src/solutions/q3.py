@@ -51,7 +51,7 @@ class Theta:
         weights[1] = -1  # scale p matrix by -1 for subtraction
         return np.array(logsumexp(stacked_sum, b=weights, axis=0))
 
-    def log_pi_repeated(self, n: int):
+    def log_pi_repeated(self, n: int) -> np.ndarray:
         """
         Repeats the log_pi vector n times along axis 0
         :param n: number of repetitions
@@ -137,12 +137,17 @@ def _compute_log_pi_hat(log_responsibility: np.ndarray) -> np.ndarray:
 
 
 def _compute_log_p_matrix_hat(
-    x: np.ndarray, log_responsibility: np.ndarray
+    x: np.ndarray,
+    log_responsibility: np.ndarray,
+    alpha: float,
+    beta: float,
 ) -> np.ndarray:
     """
     Compute the log of the maximised pixel probabilities
     :param x: the image data (n, d)
     :param log_responsibility: an array of the log responsibilities of k mixture components for each image (n, k)
+    :param alpha: alpha parameter of the beta prior
+    :param beta: beta parameter of the beta prior
     :return: an array of the maximised pixel probabilities for each component (d, k)
     """
     n, d = x.shape
@@ -152,9 +157,6 @@ def _compute_log_p_matrix_hat(
     log_responsibility_repeated = np.repeat(
         log_responsibility[:, np.newaxis, :], d, axis=1
     )  # (n, d, k)
-
-    alpha = 2
-    beta = 2
 
     log_p_matrix_unnormalised_posterior = logsumexp(
         log_responsibility_repeated, b=(x_repeated + alpha - 1), axis=0
@@ -166,30 +168,41 @@ def _compute_log_p_matrix_hat(
 
     log_p_matrix_normalised_posterior = (
         log_p_matrix_unnormalised_posterior - log_p_matrix_normaliser_posterior
-    )
+    )  # (d, k)
     return log_p_matrix_normalised_posterior
 
 
-def _compute_log_m_step(x: np.ndarray, log_responsibility: np.ndarray) -> Theta:
+def _compute_log_m_step(
+    x: np.ndarray, log_responsibility: np.ndarray, alpha: float, beta: float,
+) -> Theta:
     """
     Compute the m step of expectation maximisation
     :param x: the image data (n, d)
     :param log_responsibility: an array of the log responsibilities of k mixture components for each image (n, k)
+    :param alpha: alpha parameter of the beta prior
+    :param beta: beta parameter of the beta prior
     :return: thetas optimised after maximisation step
     """
     return Theta(
         log_pi=_compute_log_pi_hat(log_responsibility),
-        log_p_matrix=_compute_log_p_matrix_hat(x, log_responsibility),
+        log_p_matrix=_compute_log_p_matrix_hat(x, log_responsibility, alpha, beta),
     )
 
 
 def _run_expectation_maximisation(
-    x: np.ndarray, theta: Theta, max_number_of_steps: int, epsilon: float
+    x: np.ndarray,
+    theta: Theta,
+    alpha: float,
+    beta: float,
+    max_number_of_steps: int,
+    epsilon: float,
 ) -> Tuple[Theta, np.ndarray, List[float]]:
     """
     Run the expectation maximisation algorithm
     :param x: the image data (n, d)
     :param theta: initial theta parameters
+    :param alpha: alpha parameter of the beta prior
+    :param beta: beta parameter of the beta prior
     :param max_number_of_steps: the maximum number of steps to run the algorithm
     :param epsilon: the minimum required change in log likelihood, otherwise the algorithm stops early
     :return: a tuple containing the optimised thetas, the log responsibilities,
@@ -199,7 +212,7 @@ def _run_expectation_maximisation(
     log_likelihoods = []
     for _ in range(max_number_of_steps):
         log_responsibility = _compute_log_e_step(x, theta)
-        theta = _compute_log_m_step(x, log_responsibility)
+        theta = _compute_log_m_step(x, log_responsibility, alpha, beta)
 
         log_likelihoods.append(_compute_log_likelihood(x, theta))
 
@@ -274,6 +287,7 @@ def _visualise_responsibility_clusters(
     fig.set_figheight(5)
     for i, k in enumerate(ks):
         if k > 2:
+            # use TSNE when we have more than 2 dimensions
             embedding = TSNE(
                 n_components=2,
                 learning_rate="auto",
@@ -282,6 +296,7 @@ def _visualise_responsibility_clusters(
                 random_state=DEFAULT_SEED,
             ).fit_transform(log_responsibilities[i])
         else:
+            # otherwise we can visualise responsibility vectors without dimensionality reduction
             embedding = np.exp(log_responsibilities[i])
         ax = plt.subplot(1, n, i + 1)
         ax.scatter(embedding[:, 0], embedding[:, 1])
@@ -321,6 +336,8 @@ def _plot_log_posteriors(
 
 def e(
     x: np.ndarray,
+    alpha: float,
+    beta: float,
     number_of_trials: int,
     ks: List[int],
     epsilon: float,
@@ -331,6 +348,8 @@ def e(
     """
     Produces answers for question 3e
     :param x: numpy array of shape (N, D)
+    :param alpha: alpha parameter of the beta prior
+    :param beta: beta parameter of the beta prior
     :param number_of_trials: number of trails to run EM
     :param ks: k values to use for each trial
     :param epsilon: value used for early stopping of EM
@@ -351,6 +370,8 @@ def e(
             em_theta, log_responsibility, log_posterior = _run_expectation_maximisation(
                 x,
                 theta=init_theta,
+                alpha=alpha,
+                beta=beta,
                 epsilon=epsilon,
                 max_number_of_steps=max_number_of_steps,
             )

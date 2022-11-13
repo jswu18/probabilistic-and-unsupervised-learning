@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.special import logsumexp
+from scipy.special import betaln, logsumexp
 from sklearn.manifold import TSNE
 
 from src.constants import DEFAULT_SEED
@@ -113,6 +113,39 @@ def _compute_log_likelihood(x: np.ndarray, theta: Theta) -> float:
     return np.sum(_compute_log_p_x_i_given_theta(x, theta)).item()
 
 
+def _compute_log_prior(
+    theta: Theta, alpha_parameter: float, beta_parameter: float
+) -> float:
+    """
+    Compute the prior log probability of the P matrix under a Beta prior
+    :param theta: the parameters of the model
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
+    :return: log_p_of_p_matrix
+    """
+    return np.sum(
+        -betaln(alpha_parameter, beta_parameter)
+        + (alpha_parameter - 1) * theta.log_p_matrix
+        + (beta_parameter - 1) * theta.log_one_minus_p_matrix
+    ).item()
+
+
+def _compute_unnormalised_log_posterior_likelihood(
+    x: np.ndarray, theta: Theta, alpha_parameter: float, beta_parameter: float
+) -> float:
+    """
+    Compute the unnormalised posterior log probability of the P matrix
+    :param x: the image data (n, d)
+    :param theta: the parameters of the model
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
+    :return: log_p_of_p_matrix
+    """
+    log_likelihood = _compute_log_likelihood(x, theta)
+    log_prior = _compute_log_prior(theta, alpha_parameter, beta_parameter)
+    return log_likelihood + log_prior
+
+
 def _compute_log_e_step(x: np.ndarray, theta: Theta) -> np.ndarray:
     """
     Compute the e step of expectation maximisation
@@ -139,15 +172,15 @@ def _compute_log_pi_hat(log_responsibility: np.ndarray) -> np.ndarray:
 def _compute_log_p_matrix_hat(
     x: np.ndarray,
     log_responsibility: np.ndarray,
-    alpha: float,
-    beta: float,
+    alpha_parameter: float,
+    beta_parameter: float,
 ) -> np.ndarray:
     """
     Compute the log of the maximised pixel probabilities
     :param x: the image data (n, d)
     :param log_responsibility: an array of the log responsibilities of k mixture components for each image (n, k)
-    :param alpha: alpha parameter of the beta prior
-    :param beta: beta parameter of the beta prior
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
     :return: an array of the maximised pixel probabilities for each component (d, k)
     """
     n, d = x.shape
@@ -159,11 +192,11 @@ def _compute_log_p_matrix_hat(
     )  # (n, d, k)
 
     log_p_matrix_unnormalised_posterior = logsumexp(
-        log_responsibility_repeated, b=(x_repeated + alpha - 1), axis=0
+        log_responsibility_repeated, b=(x_repeated + alpha_parameter - 1), axis=0
     )  # (d, k)
 
     log_p_matrix_normaliser_posterior = logsumexp(
-        log_responsibility_repeated, b=(alpha + beta - 1), axis=0
+        log_responsibility_repeated, b=(alpha_parameter + beta_parameter - 1), axis=0
     )  # (d, k)
 
     log_p_matrix_normalised_posterior = (
@@ -173,27 +206,32 @@ def _compute_log_p_matrix_hat(
 
 
 def _compute_log_m_step(
-    x: np.ndarray, log_responsibility: np.ndarray, alpha: float, beta: float,
+    x: np.ndarray,
+    log_responsibility: np.ndarray,
+    alpha_parameter: float,
+    beta_parameter: float,
 ) -> Theta:
     """
     Compute the m step of expectation maximisation
     :param x: the image data (n, d)
     :param log_responsibility: an array of the log responsibilities of k mixture components for each image (n, k)
-    :param alpha: alpha parameter of the beta prior
-    :param beta: beta parameter of the beta prior
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
     :return: thetas optimised after maximisation step
     """
     return Theta(
         log_pi=_compute_log_pi_hat(log_responsibility),
-        log_p_matrix=_compute_log_p_matrix_hat(x, log_responsibility, alpha, beta),
+        log_p_matrix=_compute_log_p_matrix_hat(
+            x, log_responsibility, alpha_parameter, beta_parameter
+        ),
     )
 
 
 def _run_expectation_maximisation(
     x: np.ndarray,
     theta: Theta,
-    alpha: float,
-    beta: float,
+    alpha_parameter: float,
+    beta_parameter: float,
     max_number_of_steps: int,
     epsilon: float,
 ) -> Tuple[Theta, np.ndarray, List[float]]:
@@ -201,26 +239,32 @@ def _run_expectation_maximisation(
     Run the expectation maximisation algorithm
     :param x: the image data (n, d)
     :param theta: initial theta parameters
-    :param alpha: alpha parameter of the beta prior
-    :param beta: beta parameter of the beta prior
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
     :param max_number_of_steps: the maximum number of steps to run the algorithm
-    :param epsilon: the minimum required change in log likelihood, otherwise the algorithm stops early
+    :param epsilon: the minimum required change in log posterior, otherwise the algorithm stops early
     :return: a tuple containing the optimised thetas, the log responsibilities,
-             and the log likelihood at each step of the algorithm
+             and the log log_posteriors at each step of the algorithm
     """
     log_responsibility = None
-    log_likelihoods = []
+    log_posteriors = []
     for _ in range(max_number_of_steps):
         log_responsibility = _compute_log_e_step(x, theta)
-        theta = _compute_log_m_step(x, log_responsibility, alpha, beta)
+        theta = _compute_log_m_step(
+            x, log_responsibility, alpha_parameter, beta_parameter
+        )
 
-        log_likelihoods.append(_compute_log_likelihood(x, theta))
+        log_posteriors.append(
+            _compute_unnormalised_log_posterior_likelihood(
+                x, theta, alpha_parameter, beta_parameter
+            )
+        )
 
         #  check for early stopping
-        if len(log_likelihoods) > 1:
-            if (log_likelihoods[-1] - log_likelihoods[-2]) < epsilon:
+        if len(log_posteriors) > 1:
+            if (log_posteriors[-1] - log_posteriors[-2]) < epsilon:
                 break
-    return theta, log_responsibility, log_likelihoods
+    return theta, log_responsibility, log_posteriors
 
 
 def _visualise_p_matrix(
@@ -327,7 +371,7 @@ def _plot_log_posteriors(
     for i, k in enumerate(ks):
         ax[i].plot(np.arange(1, len(log_posteriors[i]) + 1), log_posteriors[i])
         ax[i].set_xlabel("Step")
-        ax[i].set_ylabel(f"Log-Posterior")
+        ax[i].set_ylabel(f"Unnorm'd Log-Posterior")
         ax[i].set_title(f"{k=} {epsilon=}")
     plt.suptitle(figure_title)
 
@@ -336,8 +380,8 @@ def _plot_log_posteriors(
 
 def e(
     x: np.ndarray,
-    alpha: float,
-    beta: float,
+    alpha_parameter: float,
+    beta_parameter: float,
     number_of_trials: int,
     ks: List[int],
     epsilon: float,
@@ -348,8 +392,8 @@ def e(
     """
     Produces answers for question 3e
     :param x: numpy array of shape (N, D)
-    :param alpha: alpha parameter of the beta prior
-    :param beta: beta parameter of the beta prior
+    :param alpha_parameter: alpha parameter of the beta prior
+    :param beta_parameter: beta parameter of the beta prior
     :param number_of_trials: number of trails to run EM
     :param ks: k values to use for each trial
     :param epsilon: value used for early stopping of EM
@@ -370,8 +414,8 @@ def e(
             em_theta, log_responsibility, log_posterior = _run_expectation_maximisation(
                 x,
                 theta=init_theta,
-                alpha=alpha,
-                beta=beta,
+                alpha_parameter=alpha_parameter,
+                beta_parameter=beta_parameter,
                 epsilon=epsilon,
                 max_number_of_steps=max_number_of_steps,
             )
@@ -402,6 +446,6 @@ def e(
             log_posteriors,
             ks,
             epsilon,
-            figure_title=f"{figure_title} Trial {i}: Log-Posterior",
+            figure_title=f"{figure_title} Trial {i}: Unnormalised Log-Posterior",
             figure_path=f"{figure_path}-{i}-log-pos.png",
         )

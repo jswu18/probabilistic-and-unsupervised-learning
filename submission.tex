@@ -377,9 +377,9 @@ $$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \frac{\sum_n r_{nk}(\alpha-1 +
 Setting $\frac{\partial E'}{\partial \mathbf{P}_{dk}}=0$ we can calculate $\hat{\mathbf{P}}_{dk}^{MAP}$:
 $$\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} - \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} = \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\beta-x^{(n)}_{d})$$
 $$ \hat{\mathbf{P}}_{dk}^{MAP} = \frac{\sum_n r_{nk}(x^{(n)}_{d}+\alpha-1)}{(\alpha+\beta-1)( \sum_n r_{nk})}$$
-As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ \hat{\mathbf{P}}_{dk}^{MLE}$ as we would expect.
+As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ \hat{\mathbf{P}}_{dk}^{MLE}$ as we would expect. For the following parts, a Beta(2, 2) prior was used.
 \newpage
-\item[(d)] Plotting the posterior likelihood as a function of the iteration number for different k values:
+\item[(d)] Plotting the unnormalised posterior likelihood as a function of the iteration number for different k values:
 
 \begin{figure}[h]
 \centering
@@ -388,7 +388,7 @@ As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ 
 \label{fig:3d-log-like}
 \end{figure}
 
-where $epsilon$ is the stopping condition for when the log posterior converges sufficiently.
+where $epsilon$ is the stopping condition for when the unnormalised log posterior converges sufficiently. Note that the normalisation constant for the log posterior $\log P(\textbf{x}^{(n)}, s^{(n)} | \pi)$ is intractable and so only the unnormalised portion $\log P( \textbf{x}^{(n)}, s^{(n)} | \pi, \mathbf{P} ) + \log P(\mathbf{P})$ was computed and reported.
 
 \newpage
 
@@ -440,7 +440,7 @@ The Python code for the EM algorithm:
 \end{figure}
 
 
-For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$). For $k=3$, we get one each of zero, seven, and five, but in different orderings for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have three 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
+For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$). For $k=3$, we get one each of zero, seven, and five, but in different permutations for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have three 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
 
 \newpage
 
@@ -473,7 +473,7 @@ Moreover, looking at the responsibilities of each mixture component, we can see 
   \label{fig:3e-tsne-3}
 \end{figure}
 
-Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure more even mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.
+Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure a more even distribution across mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.  Moreover, more experimentation for choosing better priors can be helpful to find better separation between mixtures. Finally, increasing the size of our data set (i.e. more images) and resolution of our images (i.e. more pixels) can help the model better understand the distinguishing nuances of different mixtures and provide better clustering, although the number of images and the resolution should scale together to ensure that the model doesn't learn the noise in the higher resolution images. This is assuming we are able to scale our computing resources. Finally, given that we know that there are ten digits and our current data set only includes a subset of these digits, we can also expand our data set to include all ten digits. Hopefully, for $k=10$, we will then be able to achieve a unique digit for each mixing component, rather than variations of repeated digits as we see now.
 
 \end{enumerate}
 

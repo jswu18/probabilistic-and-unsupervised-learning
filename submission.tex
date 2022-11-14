@@ -224,13 +224,13 @@ $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i) = \int_0^1...\int_0^1 P(\{\textbf{x}^{(
 For $M_1$:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = \int_0^1...\int_0^1 0.5^{N\cdot D} d\theta_1...d\theta_D$$
 We can remove the integrals:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = (0.5)^{N\cdot D}$$
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_1) = 0.5^{N\cdot D}$$
 For $M_2$, we have that all pixels share some probability $p_d$ so we only need to integrate over a single variable $p_d$:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1 \prod_{n=1}^{N} \prod_{d'=1}^D p_d^{x_{d'}^{(n)}} (1-p_d)^{1-{x_{d'}}^{(n)}} dp_d$$
 Changing the products to sums:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1  p_d^{\sum_{n=1}^{N} \sum_{d'=1}^D x_{d'}^{(n)}} (1-p_d)^{\sum_{j=1}^{N} \sum_{d'=1}^D 1-{x_{d'}^{(n)}}} d p_d$$
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1  p_d^{\sum_{n=1}^{N} \sum_{d'=1}^D x_{d'}^{(n)}} (1-p_d)^{\sum_{n=1}^{N} \sum_{d'=1}^D 1-{x_{d'}^{(n)}}} d p_d$$
 Rewriting:
-$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1  (p_d)^{K} (1- p_{d'=1})^{N\cdot D-K} d p_d$$
+$$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_2) = \int_0^1  (p_d)^{K} (1- p_{d=1})^{N\cdot D-K} d p_d$$
 where $K =\sum_{n=1}^{N} \sum_{d'=1}^D x_{d'}^{(n)}$.
 
 \item[]This integral is the beta function:
@@ -243,7 +243,7 @@ Changing the products to sums:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \Bigg( \int_0^1   p_d^{\sum_{n=1}^{N} x_d^{(n)}} (1- p_d)^{\sum_{n=1}^{N} 1-{x_d}^{(n)}} d p_d \Bigg)$$
 In this case, we have the product of integrals where each evaluates to a beta function:
 $$P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_3) = \prod_{d=1}^D \frac{K_d! (N-K_d)!}{(N+1)!}$$
-where $K_d = \sum_{n=1}^{N} x_d^{(n}$.
+where $K_d = \sum_{n=1}^{N} x_d^{(n)}$.
 
 \item[]The posterior probability of a model $M_i$ can be expressed:
 $$P(M_i |  \{\textbf{x}^{(n)}\}_{n=1}^{N}) = \frac{P( \{\textbf{x}^{(n)}\}_{n=1}^{N}|M_i)P(M_i)}{P( \{\textbf{x}^{(n)}\}_{n=1}^{N})}$$
@@ -268,7 +268,7 @@ Calculating the posterior probabilities of each of the three models having gener
 \label{table2}
 \end{table}
 
-We can see that for models specified to have the same parameter value for all pixels, like $M_1$, is very unlikely with the given data set. This makes sense because it is specifying models where the image is essentially blank (a uniform shade), which is not reflective of our digit images. Moreover, $M_1$ specifies a specific value of 0.5 for all the parameters whereas $M_2$ specifies any value for all the parameters as long as it's the same. So the model $M_1$ is just one possible model specified in $M_2$ and we can see this reflected in our probabilities when $P(M_2|\{\textbf{x}^{(n)}\}_{n=1}^{N}) > P(M_1|\{\textbf{x}^{(n)}\}_{n=1}^{N})$.
+We can see that for models specified to have the same parameter value for all pixels, like $M_1$, are very unlikely with the given data set. This makes sense because it is specifying models where the image is essentially a uniform shade, which is not reflective of our digit images. Moreover, $M_1$ specifies a specific value of 0.5 for all the parameters whereas $M_2$ specifies any value for all the parameters as long as it's the same. So the model $M_1$ is just one possible model specified in $M_2$ and we can see this reflected in our probabilities when $P(M_2|\{\textbf{x}^{(n)}\}_{n=1}^{N}) > P(M_1|\{\textbf{x}^{(n)}\}_{n=1}^{N})$.
 
 \newpage
 The Python code for calculating the posterior probabilities of the three models:
@@ -293,17 +293,17 @@ where $\{\textbf{x}^{(n)}\}_{n=1}^{N}$ is our data set with $\textbf{x}^{(n)} \i
 For each $P(\textbf{x}^{(n)}|\theta)$:
 $$P(\textbf{x}^{(n)}|\theta) = \sum_{k=1}^{K} \pi_k \prod_{d=1}^D (p_{kd})^{x^{(n)}_{d}} (1-p_{kd})^{1-x^{(n)}_{d}}$$
 The log-likelihood $\mathcal{L}(\textbf{x}^{(n)}|\theta)$ can be expressed in vector form:
-$$\mathcal{L}(\textbf{x}^{(n)}|\theta) = \log \sum_{k=1}^{K}  \pi_k \exp\bigg(\textbf{x}^{(n)}\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})\log(1-\mathbf{P}_{k})\bigg) $$
-which can be further vectorised using Python scipy's $logsumexp$ operation.
+$$\mathcal{L}(\textbf{x}^{(n)}|\theta) = \log \sum_{k=1}^{K}  \pi_k \exp\bigg((\textbf{x}^{(n)})^T \log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})^T \log(1-\mathbf{P}_{k})\bigg) $$
+where $\mathbf{P}_{k}$ is the $k^{th}$ column of $\mathbf{P}$. This can can be further vectorised using Python scipy's $logsumexp$ operation.
 
 Moreover, the log-likelihood $\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)$ can be expressed:
-$$\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \sum_{i=1}^{N} \Bigg( \log \sum_{k=1}^{K}  \pi_k \exp\bigg(\textbf{x}^{(n)}\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})\log(1-\mathbf{P}_{k})\bigg) \Bigg)$$
+$$\mathcal{L}(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta) = \sum_{i=1}^{N} \Bigg( \log \sum_{k=1}^{K}  \pi_k \exp\bigg((\textbf{x}^{(n)})^T\log(\mathbf{P}_{k}) + (1-\textbf{x}^{(n)})^T\log(1-\mathbf{P}_{k})\bigg) \Bigg)$$
 
 \item[(b)] We know that:
 $$P(A|B) \propto P(B|A)P(A)$$
 Thus,
 $$P(s^{(n)} = k|\textbf{x}^{(n)}, \pi, \mathbf{P}) \propto  P(\textbf{x}^{(n)} | s^{(n)} = k, \pi, \mathbf{P}) P(s^{(n)} = k|\pi, \mathbf{P})$$
-where $s^{(n)} \in \{1,...,K\}$ a discrete hidden variable with $P(s^{(n)} = k|\textbf{x}^{(n)}, \pi) = \pi_k$. Note that $P(s^{(n)} = k|\pi, \mathbf{P}) = P(s^{(n)} = k| \pi)$ as $s^{(n)$ isn't dependent on $\mathbf{P}$.
+where $s^{(n)} \in \{1,...,K\}$ a discrete hidden variable with $P(s^{(n)} = k| \pi) = \pi_k$. Note that $P(s^{(n)} = k|\pi, \mathbf{P}) = P(s^{(n)} = k| \pi)$ as $s^{(n)}=k$ isn't dependent on $\mathbf{P}$.
 
 Let $\tilde{r}_{nk}$ be the unnormalised responsibility $ P(\textbf{x}^{(n)} | s^{(n)} = k, \pi, \mathbf{P}) P(s^{(n)} = k|\pi, \mathbf{P})$. Using the mixture for component $k$, $\pi_k$ and the likelihood function of component $k$:
 $$\tilde{r}_{nk} = \pi_k \prod_{d=1}^D (p_{kd})^{x^{(n)}_{d}} (1-p_{kd})^{1-x^{(n)}_{d}}$$
@@ -319,7 +319,7 @@ which can be vectorised as $\log \textbf{r}$ calculated with $\log\pi$ and $\log
 
 \item[(c)] We know that the expectation log joint can be expressed:
 $$\Bigg\langle \sum_n \log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P})\Bigg\rangle_{q(\{s^{(n)}\})} = \sum_{n=1}^N q(s^{(n)}) \log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P})$$
-Let this quantity be $E$. For each term of $E$:
+Let this quantity be $E$. For each term of the summation in $E$:
 $$q(s^{(n)}) = \textbf{r}_{n}^T$$
 and
 $$\log P(\textbf{x}^{(n)}, s^{(n)}| \pi, \mathbf{P}) = \log[P(\textbf{x}^{(n)}| s^{(n)}, \pi, \mathbf{P})P(s^{(n)}| \pi, \mathbf{P})]$$
@@ -440,11 +440,11 @@ The Python code for the EM algorithm:
 \end{figure}
 
 
-For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$, although for trial 2, it looks more like zero and five mixed with seven). For $k=3$, we get one each of zero, seven, and five, but in different permutations for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have two 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
+For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$, although for trial 2, it looks more like zero and five mixed with seven). For $k=3$, we get one each of zero, seven, and five, but in different permutations for different trials. However for higher k, we see that this may not always be the case. For Trial 1 of $k=10$, we have two 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
 
 \newpage
 
-Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_3$ of trial 0 and $k=10$). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_3$ and $\pi_4$ are very similar in trial 0 and $k=10$). Moreover, for these small probabilities, we see that the parameters are almost like binary images. This shows that there are not many images represented in these components. This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, just the responsibility vector is plotted because it is two dimensional). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some mixtures are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see three or four clusters with TSNE.
+Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small probability (i.e. $\pi_3$ of trial 0 and $k=10$). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_3$ and $\pi_4$ are very similar in trial 0 and $k=10$). Moreover, for these small probabilities, we see that the parameters are almost like binary images. This shows that there are not many images represented in these components. This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, just the responsibility vector is plotted because it is two dimensional). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some mixtures are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see three or four clusters with TSNE.
 
 \begin{figure}[h]
   \centering
@@ -473,13 +473,13 @@ Moreover, looking at the responsibilities of each mixture component, we can see 
   \label{fig:3e-tsne-3}
 \end{figure}
 
-Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure a more even distribution across mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.  Moreover, more experimentation for choosing better priors can be helpful to find better separation between mixtures. Finally, increasing the size of our data set (i.e. more images) and resolution of our images (i.e. more pixels) can help the model better understand the distinguishing nuances of different mixtures and provide better clustering, although the number of images and the resolution should scale together to ensure that the model doesn't learn the noise in the higher resolution images. This is assuming we are able to scale our computing resources. Finally, given that we know that there are ten digits and our current data set only includes a subset of these digits, we can also expand our data set to include all ten digits. Hopefully, for $k=10$, we will then be able to achieve a unique digit for each mixing component, rather than variations of repeated digits as we see now.
+Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure a more even distribution across mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.  Moreover, more experimentation for choosing better priors can be helpful to find better separation between mixtures. Increasing the size of our data set (i.e. more images) and resolution of our images (i.e. more pixels) can help the model better understand the distinguishing nuances of different mixtures and provide better clustering, although the number of images and the resolution should scale together to ensure that the model doesn't learn the noise in the higher resolution images. This is assuming we are able to scale our computing resources. Finally, given that we know that there are ten digits and our current data set only includes a subset of these digits, we can also expand our data set to include all ten digits. Hopefully, for $k=10$, we will then be able to achieve a unique digit for each mixing component, rather than variations of repeated digits as we see now.
 \newpage
 \item[(f)] The log-likelihood in bits can be expressed as:
 
 $$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))$$
 
-The length of the naive encoding of these binary data is $N \cdot D$, the number of pixels in $\{\textbf{x}^{(n)}\}_{n=1}^{N}$. This is because the images are binary so each pixel can be represented with a single bit. We can compute the ratio of log-likelihood bits to the length of the naive encoding for each $k$:
+The length of the naive encoding of these binary data is $N \cdot D$, the number of pixels in $\{\textbf{x}^{(n)}\}_{n=1}^{N}$. This is because the images are binary so each pixel can be represented with a single bit. We can compute compression rate with respect to the ratio of log-likelihood bits to the length of the naive encoding for each $k$:
 
 $$rate = 1 - \frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))}{N \cdot D}$$
 
@@ -498,14 +498,14 @@ Presenting the compression rates for different trials and $k$ values:
 \end{center}
 \end{table}
 
-As k increases, we can see that our compression rate gets better. This is intuitive because with higher $k$ we are specifying a more complex and expressive model (i.e. with more parameters) and thus we are able to capture more of the structure of the data in the model. Thus, the bit rate, or information provided by a sample decreases with respect to the complexity of the model and thus our compression rate increases. From the source coding theorem, lossless compression algorithms are lower bounded by the entropy of the underlying data generating distribution $P(\textbf{x})$. This is $-\sum_{x\in \mathcal{X}} P(\textbf{x})\log P(\textbf{x})$. On the other hand, with EM we are maximising $\langle \log P(Z, X | \theta) \rangle_{q(X)} + H[q]$ or minimising the negative of this. When our proposal distribution $P$ matches $q$, we recover $H[P]$ and we get the optimal model, the data generating model for encoding our data, which makes sense because we would be able to compress our data with the best possible distribution. This matches the lower bound of the source coding theorem. However, because it is very unlikely that our proposal $q$ will actually match $P$, our compression rate will always be worse than the optimal compression rate of $H[P]$. On the other hand, a compression algorithm would compressions on a per image basis, independent of the other images. And thus, it is able to attain a better compression rate for that image and is much closer to the source coding theorem lower bound. Depending on the data (i.e. $H[P]$ of the data), the compression rate of gzip can range from $60\%$ to $88\%$ (https://web.dev/optimizing-content-efficiency-optimize-encoding-and-transfer/#text-compression-with-gzip), much higher than that of our models, as we expected.
+As k increases, we can see that our compression rate gets better. This is intuitive because with higher $k$ we are specifying a more complex and expressive model (i.e. with more parameters) and thus we are able to capture more of the structure of the data in the model. Thus, the bit rate, or information provided by a sample decreases with respect to the complexity of the model and thus our compression rate increases. From the source coding theorem, lossless compression algorithms are lower bounded by the entropy of the underlying data generating distribution $P(\textbf{x})$. This is $-\sum_{x\in \mathcal{X}} P(\textbf{x})\log P(\textbf{x})$. On the other hand, with EM we are maximising $\langle \log P(Z, X | \theta) \rangle_{q(X)} + H[q]$ or minimising the negative of this. When our proposal distribution $P$ matches $q$, we recover $H[P]$ and we get the optimal model, the data generating model for encoding our data. This makes sense because we would be able to compress our data with the best possible distribution to represent the data. This matches the lower bound of the source coding theorem. However, because it is very unlikely that our proposal $q$ will actually match $P$, our compression rate will always be worse than the optimal compression rate of $H[P]$. On the other hand, a compression algorithm would compressions on a per image basis, independent of the other images. And thus, it is able to attain a better compression rate for that image and is much closer to the source coding theorem lower bound. Depending on the data (i.e. $H[P]$ of the data), the compression rate of gzip can range from $60\%$ to $88\%$ (https://web.dev/optimizing-content-efficiency-optimize-encoding-and-transfer/#text-compression-with-gzip), much higher than that of our models, as we expected.
 
 \newpage
-\item[(g)] The total cost of encoding with model parameters and data:
+\item[(g)] The total cost of encoding with model parameters and data is:
 
 $$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K$$
 
-Where $M$ is the cost of storing a single float value, in our case we used $float64$ so 64 bits. The first term is the log-likelihood as expressed in (f), the second term is the cost of storing $\mathbf{P}$, and the last term is the cost of storing $\pi$. The latter two terms scale with the value of k. This means that as $k$ increases, our compression rate deteriorates. Looking at the total compression ratio $\frac{log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K}{N\cdot D}$ in a table:
+Where $M$ is the cost of storing a single float value, in our case we used $float64$ so 64 bits. The first term is the log-likelihood as expressed in part (f), the second term is the cost of storing $\mathbf{P}$, and the last term is the cost of storing $\pi$. The latter two terms scale with the value of k. This means that as $k$ increases, our compression rate deteriorates. Looking at the total compression ratio $\frac{log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K}{N\cdot D}$ in a table:
 
 \begin{table}[h]
 \begin{center}
@@ -520,7 +520,7 @@ Where $M$ is the cost of storing a single float value, in our case we used $floa
 \end{center}
 \end{table}
 
-We can see that the ratio is greater than one, meaning that this is actually worse than the naive encoding. This is due to the high cost of each value in the model parameters being 64 bits. However, because this remains constant with respect to our data set size, so as $N$ increases, these ratios will approach $\frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)}{N\cdot D}$ and we'll recover our compression rates from part (f). By increasing $k$, we see that the ratio increases, and thus our compression rate is worse. This makes sense because we are essentially slowly storing the data into the model. In the extreme example of $k=N$ we can have the parameters for each mixture model as an image in the data. Although in this case, we could store our parameters as binary values instead of 64 bit floats. Our mixture component is uniform because each mixture is equally likely (all images are equally likely) so there is no need to store any values for $\pi$. Thus, we would recover the cost of naive encoding our data. Taking into account the model parameters further verifies that the cost of encoding with this approach is much higher than the cost of gzip.
+We can see that the ratio is greater than one, meaning that this is actually worse than the naive encoding. This is due to the high cost of storing each value in the model parameters being 64 bits. However, because this remains constant with respect to our data set size, as $N$ increases these ratios will approach $\frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)}{N\cdot D}$ and we'll recover our compression rates from part (f). By increasing $k$, we see that the ratio increases, and thus our compression rate is worse. This makes sense because we are essentially slowly storing the data into the model. In the extreme example of $k=N$ we can have the parameters for each mixture model as an image in the data. Although in this case, we could store our parameters as binary values instead of 64 bit floats. Our mixture component is uniform because each mixture is equally likely (all images are equally likely) so there is no need to store any values for $\pi$. Thus, we would recover the cost of naive encoding our data. Taking into account the model parameters further verifies that the cost of encoding with this approach is much higher than the cost of gzip.
 
 
 \end{enumerate}
@@ -549,16 +549,16 @@ We can see that the ratio is greater than one, meaning that this is actually wor
 
 \item[(a)] The formulae for the ML estimates of $P(s_i = \alpha |s_{i-1} = \beta) = \Psi(\alpha, \beta)$:
 $$\Psi(\alpha, \beta) = \frac{N_{\alpha, \beta}}{N_{\beta}}$$
-where $N_{\alpha, \beta}$ is the count of the number of occurrences of the pair $(\alpha, \beta)$, where $\beta$ is followed by $s\alpha$ in the text and $N_{\beta}$ is the number of occurrences of $\beta$. Moreover to ensure ergodicity, a one was added to each $N_{\alpha, \beta}$. This was also taken into account for the normaliser $N_{\beta}$.
+where $N_{\alpha, \beta}$ is the count of the number of occurrences of the pair $(\alpha, \beta)$, where $\beta$ is before $\alpha$ in the text and $N_{\beta}$ is the number of occurrences of $\beta$. Moreover to ensure ergodicity, a one was added to each $N_{\alpha, \beta}$. This was also taken into account for the normaliser $N_{\beta}$.
 
 Moreover, the stationary distribution $\phi$ can be calculated using the power method:
 \begin{enumerate}
   \item[(i)] Initialise any $\phi^{(0)} \in \mathbb{R}^{53 \times 1}$ and $\sum_i \phi^{(0)}_i = 1$
   \item[(ii)] Repeat $\phi^{(i+1)} = \Psi \phi^{(i)}$
-  \item[(iii)] Terminate when $\phi^{(i+1) - \phi^{(i)} < \epsilon$
+  \item[(iii)] Terminate when $\phi^{(i+1)} - \phi^{(i)} < \epsilon$
 \end{enumerate}
 
-where $\Psi \in \mathbf{R}^{53\times53}$ containing the transition probabilities, $\Psi_{i, j} = P(s_j | s_i)$ where $s_i$ is the $i^{th}$ symbol and $s_j$ is the $j^{th}$ symbol, and $\epsilon$ is some small number indicating sufficient convergence of the distribution to be considered stationary. The function $\phi(\gamma)$ is simply the index of symbol $\gamma$ in the vector $\phi$.
+where $\Psi \in \mathbf{R}^{53\times53}$ containing the transition probabilities, $\Psi_{i, j} = P(s^j | s^i)$ where $s^i$ is the $i^{th}$ symbol and $s^j$ is the $j^{th}$ symbol with respect to the indices of symbols in the $\Psi$ matrix, and $\epsilon$ is some small number indicating sufficient convergence of the distribution to be considered stationary. The function $\phi(\gamma)$ is simply the index of symbol $\gamma$ in the vector $\phi$.
 
 %Let $p(\textbf{s}_i,\textbf{s}_{i-1})$ be the probability of the pair of symbols $\textbf{s}_i$ and $\textbf{s}_{i-1}$ occurring together in the text ($\textbf{s}_{i-1}$ followed by $\textbf{s}_i$ where order matters).
 %We can model $p(\textbf{s}_i,\textbf{s}_{i-1})$ as a multinomial distribution with $N=1$ and $D=53^2$:
@@ -689,9 +689,9 @@ Because we are assuming a uniform prior distribution over $\sigma$'s, the transi
 
 The MH acceptance probability is given as:
 $$A(\sigma \rightarrow \sigma'| \mathcal{D}) = \min \{1, \frac{S(\sigma' \rightarrow \sigma)P(\sigma'|\mathcal{D})}{S(\sigma \rightarrow \sigma')P(\sigma|\mathcal{D})})\}$$
-because $S(\sigma \rightarrow \sigma')$ is the conditional transition probability of $\sigma'$ given $\sigma$ and $\mathcal{D}$ is our encrypted text $e_1, e_2,...,e_n$.
+where $S(\sigma \rightarrow \sigma')$ is the conditional transition probability of $\sigma'$ given $\sigma$ and $\mathcal{D}$ is our encrypted text $e_1, e_2,...,e_n$.
 
-$S(\sigma \rightarrow \sigma') = S(\sigma' \rightarrow \sigma)$ for all $\sigma$ and $\sigma'$ that differ only at two spots because the probability in this case will always be $\frac{1}{{53 \choose 2}}$, we can simplify:
+$S(\sigma \rightarrow \sigma') = S(\sigma' \rightarrow \sigma)$ for all $\sigma$ and $\sigma'$ that differ only at two spots because the probability in this case will always be $\frac{1}{{53 \choose 2}}$, so we can simplify:
 $$A(\sigma \rightarrow \sigma'| \mathcal{D}) = \min \{1, \frac{P(\sigma'|\mathcal{D})}{P(\sigma|\mathcal{D})})\}$$
 From Bayes' Theorem:
 $$P(\sigma|\mathcal{D}) = \frac{P(\mathcal{D}|\sigma)P(\sigma)}{\sum_{\sigma'}P(\mathcal{D}|\sigma')P(\sigma')}$$
@@ -760,9 +760,9 @@ The Python code for the MH sampler:
 
 \item[(f)] If we were to use symbol probabilities alone for decoding, the joint probability would be:
 $$P(e_1, e_2,...,e_n|\sigma) = \prod_{i=1}^n P(\sigma^{-1}(e_i))$$
-the product of the likelihoods of the decoded letters. In this case, the optimal decoding would simply replace the most frequent symbols in the encrypted message with the most frequent symbols in the training text. This decoding approach is much more difficult because each letter is assumed to be independent of its neighbours. For a first order Markov chain, we exploit the structure of language by considering pairs of letters. Assuming that as the training text size approaches infinity and the size of the encrypted message also approaches infinity, that the two will have the same symbol frequency and that the probability of each symbol is unique, (i.e. two different symbols can't have the same frequency), then using symbol probabilities alone should theoretically work by matching symbol probabilities. However, in practise it would be unlikely to be able to make these assumptions about symbol frequencies, especially with the finite size of our training set and encrypted message.
+the product of the likelihoods of the decoded letters. In this case, the optimal decoding would simply replace the most frequent symbols in the encrypted message with the most frequent symbols in the training text. This decoding approach is much more difficult because each letter is assumed to be independent of its neighbours. For a first order Markov chain, we exploit the structure of language by considering pairs of letters. Assuming that as the training text size approaches infinity and the size of the encrypted message also approaches infinity, that the two will have the same symbol frequency and that the probability of each symbol is unique, (i.e. two different symbols can't have the same frequency), then using symbol probabilities alone should theoretically work by matching symbol probabilities. However, in practise it would be unlikely to be able to make these assumptions about symbol frequencies, especially with the finite size of our training set and encrypted message. Therefore in practise, symbol probabilities alone would not be sufficient.
 
-A second-order chain should also work in theory. However, with this approach it is probably practically more difficult for finding a suitable decoding. This is because our transition tensor would contain $N^3$ elements, where $N$ is the number of symbols, to account for all possible second order transitions. Our training text would need to increase quadratically to maintain the same ratio of possible transitions to example transitions (number of first order transitions in a text of length $N$ is $N-1$ and second order its $N-2$). This can also introduce sparsity (as in small non-zero probabilities in many entries) in our transition matrix despite our ability to maintain ergodicity with small probabilities to prevent non-zero entries. However, the log-likelihood of many areas of $\sigma$ space might be very small or all just the same, when all the transition probabilities are just the offset probability (added to maintain ergodicity). Navigating this space will be much more difficult for the sampler as the space could be relatively flat.
+A second-order chain should also work in theory. However, with this approach it is probably practically more difficult for finding a suitable decoding. This is because our transition tensor would contain $N^3$ elements, where $N$ is the number of symbols, to account for all possible second order transitions. Our training text would need to increase quadratically to maintain the same ratio of possible transitions to example transitions (number of first order transitions in a text of length $N$ is $N-1$ and second order its $N-2$). This can also introduce sparsity (in this case, small non-zero probabilities because ergodicity is maintained) in our transition tensor. Thus, the log-likelihood of many areas of $\sigma$ space might be very small or the same as their neighbours, when the transition probabilities are mostly just the offset probability added to maintain ergodicity. Navigating this space will be much more difficult for the sampler.
 
 For an encryption scheme where two symbols map to the same encrypted value:
 $$\exists \alpha, \beta, \sigma(\alpha) = \sigma(\beta), \alpha \neq \beta$$
@@ -851,24 +851,24 @@ and recover our original optimisation problem by letting $\textbf{x}=\textbf{w}$
 
 \item[(b)] We can now reformulate the optimisation as:
 $$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} \frac{\textbf{x}^T\textbf{Ax}}{\|\textbf{x}\|^2}$$
-Because $\| \textbf{x}\|=1$, we can equivalently write:
+Because $\| \textbf{x}\|=1$ (i.e. choosing $\textbf{w} \in \mathbb{R}$ and $\textbf{x}=\frac{\textbf{w}}{\|\textbf{w}\|}$ to reformulate the problem over the unit sphere), we can equivalently write:
 $$\sup_{\big\{\textbf{x}\in \mathbb{R}^n \bigm| \| \textbf{x}\|=1\big\}} \textbf{x}^T\textbf{Ax}}$$
 Thus, showing $R_A(\textbf{x}) \leq \lambda_1$ will be equivalent to showing $\textbf{x}^T\textbf{Ax}} \leq \lambda_1$ for $\|\textbf{x}\|=1$.
 We know that for all $\textbf{x} \in \mathbb{R}^n$:
 $$\textbf{x} = \sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i$$
 so we can write:
-$$\textbf{x}^T\textbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\textbf{A}\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i\bigg)$$
-Given that $\xi_i$ are eigenvectors of $\textbf{A}$ corresponding to eigenvalues $\lambda_i$:
+$$\textbf{x}^T\texRtbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\textbf{A}\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i\bigg)$$
+Given that $\xi_i$R are eigenvectors of $\textbf{A}$ corresponding to eigenvalues $\lambda_i$:
 $$\textbf{x}^T\textbf{Ax} =\bigg(\sum_{i=1}^n (\xi_i^T \textbf{x}) \xi_i^T\bigg)\bigg(\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x}) \xi_i\bigg)$$
 Given that the eigenvectors $\xi_i$ form an orthonormal basis, we know that $\xi_i^T\xi_j = 0$ when $i\neq j$ and $\xi_i^T\xi_j = 1$ when $i=j$, so:
 $$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$$
-From our above reformulation with the unit sphere, we know that $\|\textbf{x}\|^2 = 1$ so $\|\textbf{x}\|^2 = \sum_{j=1}^{n} x_i^2 = \sum_{j=1}^{n} (\xi_j \textbf{x})^2 = 1$. Thus the quantity $\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$ is a weighted average of $\lambda_i$'s, which is always less than or equal to the largest $\lambda_i$ value so:
+From our above reformulation with the unit sphere, we know that $\|\textbf{x}\|^2 = 1$ so $\|\textbf{x}\|^2 = \sum_{i=1}^{n} x_i^2 = \sum_{j=i}^{n} (\xiij \textbf{x})^2 = 1$. Thus the quantity $\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2$ is a weighted average of $\lambda_i$'s with weights $(\xi_i^T \textbf{x})^2$, which is always less than or equal to the largest $\lambda_i$ value so:
 $$\textbf{x}^T\textbf{Ax} =\sum_{i=1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \lambda_1$$
 where $\lambda_1$ is the largest eigenvalue of eigenvalues $\lambda_i$. Therefore, $R_A(\textbf{x}) \leq \lambda_1$ as required.
 
 \item[(c)] Given that $\textbf{x} \in span\{\xi_{k+1}, ..., \xi_{n}\}$, we can rewrite $\textbf{x}$:
 $$\textbf{x} = \sum_{i=k+1}^n (\xi_i^T \textbf{x}) \xi_i$$
-Using the same argument as in (b) we can bound $\textbf{x}^T\textbf{Ax}}$:
+Using the same line of argument as in part (b) we can bound $\textbf{x}^T\textbf{Ax}}$:
 $$\textbf{x}^T\textbf{Ax}} = \sum_{i=k+1}^n \lambda_i(\xi_i^T \textbf{x})^2 \leq \max\{\lambda_{k+1}, ..., \lambda_n\}$$
 But given that the maximum eigenvalue $\lambda_1$ is not contained in $\{\lambda_{k+1}, ..., \lambda_n\}$:
 $$\max\{\lambda_{k+1}, ..., \lambda_n\} < \lambda_1$$

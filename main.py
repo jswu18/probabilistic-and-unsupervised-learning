@@ -45,14 +45,15 @@ if __name__ == "__main__":
         os.makedirs(Q3_OUTPUT_FOLDER)
     q3.e(
         x,
-        alpha_parameter=2,
-        beta_parameter=2,
+        alpha_parameter=1 + 1e-5,
+        beta_parameter=1 + 1e-5,
         number_of_trials=4,
         ks=[2, 3, 4, 7, 10],
-        epsilon=1e-1,
+        epsilon=1e-5,
         max_number_of_steps=int(1e2),
         figure_path=os.path.join(Q3_OUTPUT_FOLDER, "q3e"),
         figure_title="Q3e",
+        compression_csv_path=os.path.join(Q3_OUTPUT_FOLDER, "q3e-compression"),
     )
 
     # Question 5

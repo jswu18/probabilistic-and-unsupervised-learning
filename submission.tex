@@ -377,7 +377,7 @@ $$\frac{\partial E'}{\partial \mathbf{P}_{dk}} =  \frac{\sum_n r_{nk}(\alpha-1 +
 Setting $\frac{\partial E'}{\partial \mathbf{P}_{dk}}=0$ we can calculate $\hat{\mathbf{P}}_{dk}^{MAP}$:
 $$\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} - \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\alpha-1 + x^{(n)}_{d})} = \hat{\mathbf{P}}_{dk}\sum_n r_{nk}(\beta-x^{(n)}_{d})$$
 $$ \hat{\mathbf{P}}_{dk}^{MAP} = \frac{\sum_n r_{nk}(x^{(n)}_{d}+\alpha-1)}{(\alpha+\beta-1)( \sum_n r_{nk})}$$
-As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ \hat{\mathbf{P}}_{dk}^{MLE}$ as we would expect. For the following parts, a Beta(2, 2) prior was used.
+As a sense check, we can see when setting $\alpha=1$ and $\beta=1$ we recover $ \hat{\mathbf{P}}_{dk}^{MLE}$ as we would expect. For the following parts, a very weak Beta(1+1e-5, 1+1e-5) prior was used.
 \newpage
 \item[(d)] Plotting the unnormalised posterior likelihood as a function of the iteration number for different k values:
 
@@ -440,11 +440,11 @@ The Python code for the EM algorithm:
 \end{figure}
 
 
-For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$). For $k=3$, we get one each of zero, seven, and five, but in different permutations for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have three 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
+For smaller k, we can visually see that we obtain very similar solutions (a seven and a zero for $k=2$, although for trial 2, it looks more like zero and five mixed with seven). For $k=3$, we get one each of zero, seven, and five, but in different permutations for different trials. However for higher K, we see that this may not always be the case. For Trial 1 of $k=10$, we have two 5's whereas in Trial 3 we have four 5's. Interestingly, different clusters of the same digits can be different, representing different variants of the written digit (i.e. a slanted zero, a slightly slanted zero, and a symmetric zero).
 
 \newpage
 
-Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_3$ of trial 2). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_2$ and $\pi_3$ are very similar in trial 2) This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, just the responsibility vector is plotted because it is two dimensional). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some mixtures are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see three to five clusters with TSNE.
+Moreover, looking at the responsibilities of each mixture component, we can see that when k is relatively small they are relatively evenly distributed. However for $k=7$ and especially $k=10$, we can see some components have very small or zero probability (i.e. $\pi_3$ of trial 0 and $k=10$). It will be unlikely for those components to represent very distinct clusters (i.e. the parameters for $\pi_3$ and $\pi_4$ are very similar in trial 0 and $k=10$). Moreover, for these small probabilities, we see that the parameters are almost like binary images. This shows that there are not many images represented in these components. This can be verified when we perform a TSNE visualisation of the responsibility vector for each of the images (Note that for $k=2$, just the responsibility vector is plotted because it is two dimensional). We can see that for large k, qualitatively the number of clusters no longer matches the k value, indicating that some mixtures are redundant. For example for $k=7$ and $k=10$ we can only qualitatively see three or four clusters with TSNE.
 
 \begin{figure}[h]
   \centering
@@ -474,6 +474,54 @@ Moreover, looking at the responsibilities of each mixture component, we can see 
 \end{figure}
 
 Improvements to the model could include searching for an optimal $k$ by maximising the log posterior with regularisation on the magnitude of $k$ to balance maximising log posterior with minimising model complexity. Additionally, adding a prior on the responsibility components can be helpful to ensure a more even distribution across mixture components unlike the components visualised here. This could help promote more meaningful clusters as $k$ increases.  Moreover, more experimentation for choosing better priors can be helpful to find better separation between mixtures. Finally, increasing the size of our data set (i.e. more images) and resolution of our images (i.e. more pixels) can help the model better understand the distinguishing nuances of different mixtures and provide better clustering, although the number of images and the resolution should scale together to ensure that the model doesn't learn the noise in the higher resolution images. This is assuming we are able to scale our computing resources. Finally, given that we know that there are ten digits and our current data set only includes a subset of these digits, we can also expand our data set to include all ten digits. Hopefully, for $k=10$, we will then be able to achieve a unique digit for each mixing component, rather than variations of repeated digits as we see now.
+\newpage
+\item[(f)] The log-likelihood in bits can be expressed as:
+
+$$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))$$
+
+The length of the naive encoding of these binary data is $N \cdot D$, the number of pixels in $\{\textbf{x}^{(n)}\}_{n=1}^{N}$. This is because the images are binary so each pixel can be represented with a single bit. We can compute the ratio of log-likelihood bits to the length of the naive encoding for each $k$:
+
+$$rate = 1 - \frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))}{N \cdot D}$$
+
+Presenting the compression rates for different trials and $k$ values:
+
+\begin{table}[h]
+\begin{center}
+{\begin{tabular}{c|c|c|c|c}%
+ \bfseries k value & Trial 0 & Trial 1& Trial 2 & Trial 3% specify table head
+\csvreader[head to column names
+]{outputs/q3/q3e-compression.csv}{}% use head of csv as column names
+{\\\hline\csvcoli&\csvcolii&\csvcoliii&\csvcoliv&\csvcolv}% specify your coloumns here
+\end{tabular}
+}
+\caption{Compression Rates}
+\end{center}
+\end{table}
+
+As k increases, we can see that our compression rate gets better. This is intuitive because with higher $k$ we are specifying a more complex and expressive model (i.e. with more parameters) and thus we are able to capture more of the structure of the data in the model. Thus, the bit rate, or information provided by a sample decreases with respect to the complexity of the model and thus our compression rate increases. From the source coding theorem, lossless compression algorithms are lower bounded by the entropy of the underlying data generating distribution $P(\textbf{x})$. This is $-\sum_{x\in \mathcal{X}} P(\textbf{x})\log P(\textbf{x})$. On the other hand, with EM we are maximising $\langle \log P(Z, X | \theta) \rangle_{q(X)} + H[q]$ or minimising the negative of this. When our proposal distribution $P$ matches $q$, we recover $H[P]$ and we get the optimal model, the data generating model for encoding our data, which makes sense because we would be able to compress our data with the best possible distribution. This matches the lower bound of the source coding theorem. However, because it is very unlikely that our proposal $q$ will actually match $P$, our compression rate will always be worse than the optimal compression rate of $H[P]$. On the other hand, a compression algorithm would compressions on a per image basis, independent of the other images. And thus, it is able to attain a better compression rate for that image and is much closer to the source coding theorem lower bound. Depending on the data (i.e. $H[P]$ of the data), the compression rate of gzip can range from $60\%$ to $88\%$ (https://web.dev/optimizing-content-efficiency-optimize-encoding-and-transfer/#text-compression-with-gzip), much higher than that of our models, as we expected.
+
+\newpage
+\item[(g)] The total cost of encoding with model parameters and data:
+
+$$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K$$
+
+Where $M$ is the cost of storing a single float value, in our case we used $float64$ so 64 bits. The first term is the log-likelihood as expressed in (f), the second term is the cost of storing $\mathbf{P}$, and the last term is the cost of storing $\pi$. The latter two terms scale with the value of k. This means that as $k$ increases, our compression rate deteriorates. Looking at the total compression ratio $\frac{log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K}{N\cdot D}$ in a table:
+
+\begin{table}[h]
+\begin{center}
+{\begin{tabular}{c|c|c|c|c}%
+ \bfseries k value & Trial 0 & Trial 1& Trial 2 & Trial 3% specify table head
+\csvreader[head to column names
+]{outputs/q3/q3e-compression-total.csv}{}% use head of csv as column names
+{\\\hline\csvcoli&\csvcolii&\csvcoliii&\csvcoliv&\csvcolv}% specify your coloumns here
+\end{tabular}
+}
+\caption{Total Compression Ratios}
+\end{center}
+\end{table}
+
+We can see that the ratio is greater than one, meaning that this is actually worse than the naive encoding. This is due to the high cost of each value in the model parameters being 64 bits. However, because this remains constant with respect to our data set size, so as $N$ increases, these ratios will approach $\frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)}{N\cdot D}$ and we'll recover our compression rates from part (f). By increasing $k$, we see that the ratio increases, and thus our compression rate is worse. This makes sense because we are essentially slowly storing the data into the model. In the extreme example of $k=N$ we can have the parameters for each mixture model as an image in the data. Although in this case, we could store our parameters as binary values instead of 64 bit floats. Our mixture component is uniform because each mixture is equally likely (all images are equally likely) so there is no need to store any values for $\pi$. Thus, we would recover the cost of naive encoding our data. Taking into account the model parameters further verifies that the cost of encoding with this approach is much higher than the cost of gzip.
+
 
 \end{enumerate}
 

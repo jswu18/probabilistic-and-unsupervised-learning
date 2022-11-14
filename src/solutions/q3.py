@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.special import betaln, logsumexp
 from sklearn.manifold import TSNE
 
@@ -378,6 +379,61 @@ def _plot_log_posteriors(
     plt.savefig(figure_path)
 
 
+def _compute_compression_rate(
+    ks: List[int], log_posteriors: List[List[float]], i: int, n: int, d: int
+) -> pd.DataFrame:
+    """
+    Compute the compress rate, not taking into account the cost of storing model parameters
+    :param ks: k values to use for each trial
+    :param log_posteriors: list of vectors, each representing the log posterior during EM for a specific k
+    :param i: trial number
+    :param n: number of data points
+    :param d: number of dimensions per data point
+    :return: dataframe containing the compression rate for this trial
+    """
+    df = pd.DataFrame(
+        data=[
+            [
+                np.round(1 - (-log_posterior[-1] / (np.log(2) * n * d)), 2)
+                for log_posterior in log_posteriors
+            ]
+        ],
+        columns=ks,
+    ).T
+    df = df.reset_index()
+    df.columns = ["k value", f"Trial {i}"]
+    return df.set_index("k value")
+
+
+def _compute_total_compression_ratio(
+    ks: List[int], log_posteriors: List[List[float]], i: int, n: int, d: int
+) -> pd.DataFrame:
+    """
+    Compute the total compress ratio, taking into account the cost of storing model parameters (assuming float64)
+    :param ks: k values to use for each trial
+    :param log_posteriors: list of vectors, each representing the log posterior during EM for a specific k
+    :param i: trial number
+    :param n: number of data points
+    :param d: number of dimensions per data point
+    :return: dataframe containing the total compression ratios for this trial
+    """
+    df = pd.DataFrame(
+        data=[
+            [
+                np.round(
+                    (-log_posterior[-1] + (64 * ks[j] * (d + 1))) / (np.log(2) * n * d),
+                    2,
+                )
+                for j, log_posterior in enumerate(log_posteriors)
+            ]
+        ],
+        columns=ks,
+    ).T
+    df = df.reset_index()
+    df.columns = ["k value", f"Trial {i}"]
+    return df.set_index("k value")
+
+
 def e(
     x: np.ndarray,
     alpha_parameter: float,
@@ -388,6 +444,7 @@ def e(
     max_number_of_steps: int,
     figure_path: str,
     figure_title: str,
+    compression_csv_path: str,
 ) -> None:
     """
     Produces answers for question 3e
@@ -400,10 +457,13 @@ def e(
     :param max_number_of_steps: maximum number of steps during EM
     :param figure_title: base name of figures
     :param figure_path: base paths to store figure
+    :param compression_csv_path: path to store bits data
     :return:
     """
     n, d = x.shape
     np.random.seed(DEFAULT_SEED)
+    df_compression_list: List[pd.DataFrame] = []
+    df_total_compression_list: List[pd.DataFrame] = []
     for i in range(number_of_trials):
         init_thetas: List[Theta] = []
         em_thetas: List[Theta] = []
@@ -449,3 +509,13 @@ def e(
             figure_title=f"{figure_title} Trial {i}: Unnormalised Log-Posterior",
             figure_path=f"{figure_path}-{i}-log-pos.png",
         )
+        df_compression_list.append(
+            _compute_compression_rate(ks, log_posteriors, i, n, d)
+        )
+        df_total_compression_list.append(
+            _compute_total_compression_ratio(ks, log_posteriors, i, n, d)
+        )
+    pd.concat(df_compression_list, axis=1).to_csv(f"{compression_csv_path}.csv")
+    pd.concat(df_total_compression_list, axis=1).to_csv(
+        f"{compression_csv_path}-total.csv"
+    )

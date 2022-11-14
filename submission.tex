@@ -477,11 +477,11 @@ Improvements to the model could include searching for an optimal $k$ by maximisi
 \newpage
 \item[(f)] The log-likelihood in bits can be expressed as:
 
-$$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))$$
+$$-\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))$$
 
 The length of the naive encoding of these binary data is $N \cdot D$, the number of pixels in $\{\textbf{x}^{(n)}\}_{n=1}^{N}$. This is because the images are binary so each pixel can be represented with a single bit. We can compute compression rate with respect to the ratio of log-likelihood bits to the length of the naive encoding for each $k$:
 
-$$rate = 1 - \frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))}{N \cdot D}$$
+$$rate = 1 - \frac{-\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta))}{N \cdot D}$$
 
 Presenting the compression rates for different trials and $k$ values:
 
@@ -503,9 +503,9 @@ As k increases, we can see that our compression rate gets better. This is intuit
 \newpage
 \item[(g)] The total cost of encoding with model parameters and data is:
 
-$$\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K$$
+$$-\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K$$
 
-Where $M$ is the cost of storing a single float value, in our case we used $float64$ so 64 bits. The first term is the log-likelihood as expressed in part (f), the second term is the cost of storing $\mathbf{P}$, and the last term is the cost of storing $\pi$. The latter two terms scale with the value of k. This means that as $k$ increases, our compression rate deteriorates. Looking at the total compression ratio $\frac{log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K}{N\cdot D}$ in a table:
+Where $M$ is the cost of storing a single float value, in our case we used $float64$ so 64 bits. The first term is the log-likelihood as expressed in part (f), the second term is the cost of storing $\mathbf{P}$, and the last term is the cost of storing $\pi$. The latter two terms scale with the value of k. This means that as $k$ increases, our compression rate deteriorates. Looking at the total compression ratio $\frac{-log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)) + M \cdot K \cdot D + M \cdot K}{N\cdot D}$ in a table:
 
 \begin{table}[h]
 \begin{center}
@@ -520,7 +520,7 @@ Where $M$ is the cost of storing a single float value, in our case we used $floa
 \end{center}
 \end{table}
 
-We can see that the ratio is greater than one, meaning that this is actually worse than the naive encoding. This is due to the high cost of storing each value in the model parameters being 64 bits. However, because this remains constant with respect to our data set size, as $N$ increases these ratios will approach $\frac{\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)}{N\cdot D}$ and we'll recover our compression rates from part (f). By increasing $k$, we see that the ratio increases, and thus our compression rate is worse. This makes sense because we are essentially slowly storing the data into the model. In the extreme example of $k=N$ we can have the parameters for each mixture model as an image in the data. Although in this case, we could store our parameters as binary values instead of 64 bit floats. Our mixture component is uniform because each mixture is equally likely (all images are equally likely) so there is no need to store any values for $\pi$. Thus, we would recover the cost of naive encoding our data. Taking into account the model parameters further verifies that the cost of encoding with this approach is much higher than the cost of gzip.
+We can see that the ratio is greater than one, meaning that this is actually worse than the naive encoding. This is due to the high cost of storing each value in the model parameters being 64 bits. However, because this remains constant with respect to our data set size, as $N$ increases these ratios will approach $\frac{-\log_2(P(\{\textbf{x}^{(n)}\}_{n=1}^{N}|\theta)}{N\cdot D}$ and we'll recover our compression rates from part (f). By increasing $k$, we see that the ratio increases, and thus our compression rate is worse. This makes sense because we are essentially slowly storing the data into the model. In the extreme example of $k=N$ we can have the parameters for each mixture model as an image in the data. Although in this case, we could store our parameters as binary values instead of 64 bit floats. Our mixture component is uniform because each mixture is equally likely (all images are equally likely) so there is no need to store any values for $\pi$. Thus, we would recover the cost of naive encoding our data. Taking into account the model parameters further verifies that the cost of encoding with this approach is much higher than the cost of gzip.
 
 
 \end{enumerate}
